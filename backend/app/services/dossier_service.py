@@ -1,0 +1,196 @@
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.models.client import Client
+from app.models.dossier import Dossier
+from app.models.user import User
+from app.schemas.dossier import DossierCreate, DossierUpdate
+
+
+def create_dossier(
+    db: Session,
+    data: DossierCreate,
+) -> Dossier:
+
+    client = (
+        db.query(Client)
+        .filter(Client.id == data.client_id)
+        .first()
+    )
+
+    if client is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Client introuvable",
+        )
+
+    collaborateur = None
+
+    if data.collaborateur_id is not None:
+        collaborateur = (
+            db.query(User)
+            .filter(
+                User.id == data.collaborateur_id,
+                User.actif.is_(True),
+            )
+            .first()
+        )
+
+        if collaborateur is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Collaborateur introuvable ou désactivé",
+            )
+
+        if collaborateur.role_id not in (2, 3, 4, 5):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cet utilisateur ne peut pas être affecté à un dossier",
+            )
+
+    dossier = Dossier(
+        client_id=data.client_id,
+        collaborateur_id=(
+            collaborateur.id
+            if collaborateur is not None
+            else None
+        ),
+        titre=data.titre,
+        type_dossier=data.type_dossier,
+        description=data.description,
+        statut=data.statut,
+        priorite=data.priorite,
+        date_cloture=data.date_cloture,
+        actif=data.actif,
+    )
+
+    db.add(dossier)
+    db.commit()
+    db.refresh(dossier)
+
+    return dossier
+
+
+def get_dossiers(
+    db: Session,
+    client_id: int | None = None,
+) -> list[Dossier]:
+
+    query = db.query(Dossier)
+
+    if client_id is not None:
+        query = query.filter(Dossier.client_id == client_id)
+
+    return query.order_by(Dossier.id.desc()).all()
+
+
+def get_dossier(
+    db: Session,
+    dossier_id: int,
+) -> Dossier:
+
+    dossier = (
+        db.query(Dossier)
+        .filter(Dossier.id == dossier_id)
+        .first()
+    )
+
+    if dossier is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dossier introuvable",
+        )
+
+    return dossier
+
+
+def update_dossier(
+    db: Session,
+    dossier_id: int,
+    data: DossierUpdate,
+) -> Dossier:
+
+    dossier = get_dossier(db, dossier_id)
+
+    values = data.model_dump(
+        exclude_unset=True
+    )
+
+    for field, value in values.items():
+        setattr(dossier, field, value)
+
+    db.commit()
+    db.refresh(dossier)
+
+    return dossier
+
+
+def delete_dossier(
+    db: Session,
+    dossier_id: int,
+) -> dict:
+
+    dossier = get_dossier(db, dossier_id)
+
+    db.delete(dossier)
+    db.commit()
+
+    return {
+        "message": "Dossier supprimé avec succès",
+        "dossier_id": dossier_id,
+    }
+
+
+def affecter_dossier(db, dossier_id: int, collaborateur_id: int):
+    dossier = get_dossier(db, dossier_id)
+
+    collaborateur = (
+        db.query(User)
+        .filter(
+            User.id == collaborateur_id,
+            User.actif.is_(True),
+        )
+        .first()
+    )
+
+    if collaborateur is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collaborateur introuvable ou désactivé",
+        )
+
+    if collaborateur.role_id not in (2, 3, 4, 5):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cet utilisateur ne peut pas être affecté à un dossier",
+        )
+
+    dossier.collaborateur_id = collaborateur.id
+
+    db.commit()
+    db.refresh(dossier)
+
+    return dossier
+
+
+def desaffecter_dossier(db, dossier_id: int):
+    dossier = get_dossier(db, dossier_id)
+
+    dossier.collaborateur_id = None
+
+    db.commit()
+    db.refresh(dossier)
+
+    return dossier
+
+
+def get_dossiers_collaborateur(db, collaborateur_id: int):
+    return (
+        db.query(Dossier)
+        .filter(
+            Dossier.collaborateur_id == collaborateur_id,
+            Dossier.actif.is_(True),
+        )
+        .order_by(Dossier.id.desc())
+        .all()
+    )

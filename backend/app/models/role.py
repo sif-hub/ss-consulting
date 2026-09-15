@@ -1,0 +1,25 @@
+from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy.orm import relationship
+
+from app.core.database import Base
+
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    nom = Column(
+        String(50),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+
+    description = Column(Text, nullable=True)
+
+    utilisateurs = relationship(
+        "User",
+        back_populates="role",
+    )
+

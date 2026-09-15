@@ -1,0 +1,116 @@
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.core.config import settings
+from app.api.routes import auth
+from app.api.routes import users
+from app.api.routes import clients
+from app.api.routes import documents
+from app.api.routes import dossiers
+from app.api.routes import documents
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print(f"🚀 {settings.APP_NAME}")
+    print(f"📦 Version : {settings.APP_VERSION}")
+    print(f"🌍 Environnement : {settings.ENVIRONMENT}")
+
+    yield
+
+    print("🛑 Arrêt du serveur")
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description=settings.APP_DESCRIPTION,
+    debug=settings.DEBUG,
+    lifespan=lifespan,
+)
+
+
+# ============================================================
+# ROUTES API
+# ============================================================
+
+app.include_router(
+    auth.router,
+    prefix=settings.API_V1_PREFIX,
+)
+
+app.include_router(
+    users.router,
+    prefix=settings.API_V1_PREFIX,
+)
+
+app.include_router(
+    clients.router,
+app.include_router(
+    documents.router,
+    prefix=settings.API_V1_PREFIX,
+)
+
+    prefix=settings.API_V1_PREFIX,
+app.include_router(
+    documents.router,
+    prefix=settings.API_V1_PREFIX,
+)
+
+)
+app.include_router(
+    documents.router,
+    prefix=settings.API_V1_PREFIX,
+)
+
+
+app.include_router(
+    dossiers.router,
+    prefix=settings.API_V1_PREFIX,
+)
+
+app.include_router(
+    documents.router,
+    prefix=settings.API_V1_PREFIX,
+)
+
+
+# ============================================================
+# CORS
+# ============================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ============================================================
+# ROUTES SYSTEM
+# ============================================================
+
+@app.get("/", tags=["System"])
+def root():
+    return {
+        "application": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "online",
+    }
+
+
+@app.get(
+    f"{settings.API_V1_PREFIX}/health",
+    tags=["System"],
+)
+def health_check():
+    return {
+        "status": "healthy",
+        "application": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "database": "configured",
+    }
