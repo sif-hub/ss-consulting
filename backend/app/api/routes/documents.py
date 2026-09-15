@@ -1,4 +1,4 @@
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from pathlib import Path
 
 from fastapi import (
@@ -21,6 +21,7 @@ from app.core.dependencies import (
 from app.models.dossier import Dossier
 from app.models.user import User
 from app.schemas.document import DocumentCreate, DocumentResponse
+from app.services import file_storage
 from app.services.document_service import (
     create_declaration_document,
     create_document,
@@ -287,6 +288,7 @@ async def upload_declaration_document(
         declaration_id=declaration_id,
         filename=fichier.filename,
         content=content,
+        content_type=fichier.content_type,
     )
 
     # --------------------------------------------------------
@@ -388,9 +390,7 @@ def download_document_file(
             detail="Aucun fichier associé à ce document.",
         )
 
-    file_path = Path(document.chemin_fichier)
-
-    if not file_path.exists() or not file_path.is_file():
+    if not file_storage.file_exists(document.chemin_fichier):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Fichier introuvable sur le serveur.",
@@ -398,8 +398,12 @@ def download_document_file(
 
     ensure_document_access(db, current_user, document)
 
-    return FileResponse(
-        path=file_path,
-        filename=document.nom,
-        media_type=document.type_document,
+    content = file_storage.read_file(document.chemin_fichier)
+
+    return Response(
+        content=content,
+        media_type=document.type_document or "application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{document.nom}"',
+        },
     )

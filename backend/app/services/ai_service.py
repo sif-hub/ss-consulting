@@ -194,15 +194,15 @@ def analyser_document(document) -> dict:
             detail="Ce document n'a pas de fichier associé.",
         )
 
-    file_path = Path(document.chemin_fichier)
+    from app.services import file_storage
 
-    if not file_path.exists():
+    if not file_storage.file_exists(document.chemin_fichier):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Fichier introuvable sur le serveur.",
         )
 
-    extension = file_path.suffix.lower()
+    extension = Path(document.chemin_fichier).suffix.lower()
     media_type = ALLOWED_ANALYSE_EXTENSIONS.get(extension)
 
     if media_type is None:
@@ -230,7 +230,7 @@ def analyser_document(document) -> dict:
             model=settings.GEMINI_MODEL,
             contents=[
                 types.Part.from_bytes(
-                    data=file_path.read_bytes(),
+                    data=file_storage.read_file(document.chemin_fichier),
                     mime_type=media_type,
                 ),
                 types.Part.from_text(text=prompt),

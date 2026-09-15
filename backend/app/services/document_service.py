@@ -1,6 +1,3 @@
-from pathlib import Path
-from uuid import uuid4
-
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -8,9 +5,7 @@ from app.models.declaration import Declaration
 from app.models.document import Document
 from app.models.dossier import Dossier
 from app.schemas.document import DocumentCreate
-
-
-UPLOAD_DIR = Path("uploads")
+from app.services import file_storage
 
 
 def create_document(
@@ -153,29 +148,14 @@ def save_declaration_file(
     declaration_id: int,
     filename: str,
     content: bytes,
+    content_type: str | None = None,
 ) -> str:
-    declaration_dir = (
-        UPLOAD_DIR
-        / "declarations"
-        / str(declaration_id)
+    return file_storage.save_file(
+        folder=f"declarations/{declaration_id}",
+        filename=filename,
+        content=content,
+        content_type=content_type,
     )
-
-    declaration_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    extension = Path(filename).suffix.lower()
-
-    safe_filename = (
-        f"{uuid4().hex}{extension}"
-    )
-
-    file_path = declaration_dir / safe_filename
-
-    file_path.write_bytes(content)
-
-    return str(file_path)
 
 
 def get_document(
@@ -204,10 +184,7 @@ def delete_document(
     document = get_document(db, document_id)
 
     if document.chemin_fichier:
-        file_path = Path(document.chemin_fichier)
-
-        if file_path.exists():
-            file_path.unlink()
+        file_storage.delete_file(document.chemin_fichier)
 
     db.delete(document)
     db.commit()

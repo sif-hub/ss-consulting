@@ -12,3 +12,4 @@ reportlab
 alembic
 python-dotenv
 google-genai
+vercel
