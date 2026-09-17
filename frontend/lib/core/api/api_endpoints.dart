@@ -50,6 +50,11 @@ class ApiEndpoints {
   static String validerEcriture(int ecritureId) =>
       '$comptabilite/ecritures/$ecritureId/valider';
 
+  static const String comptabiliteClients = '$comptabilite/clients';
+
+  static String initialiserComptabiliteClient(int clientId) =>
+      '$comptabilite/clients/$clientId/initialiser';
+
   // PDF
   static const String comptabilitePdf = '/pdf/comptabilite';
 

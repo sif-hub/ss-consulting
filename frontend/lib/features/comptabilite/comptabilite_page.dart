@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import '../../core/api/api_client.dart';
 import '../../core/api/api_endpoints.dart';
 import 'balance_page.dart';
+import 'comptabilite_clients_page.dart';
 import 'comptes_page.dart';
 import 'rapports_page.dart';
 
@@ -306,7 +307,7 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
     final modules = [
       (
         'Balance',
-        'Soldes par compte',
+        'Soldes par compte (cabinet)',
         Icons.balance_rounded,
         const Color(0xFF3155D9),
         () => Navigator.push(
@@ -316,7 +317,7 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
       ),
       (
         'Comptes',
-        'Journal & grand livre',
+        'Journal & grand livre (cabinet)',
         Icons.menu_book_rounded,
         const Color(0xFF0F9D58),
         () => Navigator.push(
@@ -332,6 +333,18 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
         () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const RapportsPage()),
+        ),
+      ),
+      (
+        'Clients',
+        'Comptabilité tenue par client',
+        Icons.groups_rounded,
+        const Color(0xFFEA580C),
+        () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const ComptabiliteClientsPage(),
+          ),
         ),
       ),
     ];

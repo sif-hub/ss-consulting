@@ -5,7 +5,10 @@ import '../../core/api/api_client.dart';
 import '../../core/api/api_endpoints.dart';
 
 class BalancePage extends StatefulWidget {
-  const BalancePage({super.key});
+  final int? clientId;
+  final String? clientLabel;
+
+  const BalancePage({super.key, this.clientId, this.clientLabel});
 
   @override
   State<BalancePage> createState() => _BalancePageState();
@@ -35,7 +38,10 @@ class _BalancePageState extends State<BalancePage> {
     try {
       final response = await _apiClient.dio.get(
         ApiEndpoints.comptabiliteBalance,
-        queryParameters: {'exercice': _exercice},
+        queryParameters: {
+          'exercice': _exercice,
+          if (widget.clientId != null) 'client_id': widget.clientId,
+        },
       );
 
       if (!mounted) return;
@@ -85,9 +91,11 @@ class _BalancePageState extends State<BalancePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
       appBar: AppBar(
-        title: const Text(
-          'Balance comptable',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          widget.clientLabel != null
+              ? 'Balance — ${widget.clientLabel}'
+              : 'Balance comptable (cabinet)',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,

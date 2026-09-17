@@ -5,7 +5,10 @@ import '../../core/api/api_client.dart';
 import '../../core/api/api_endpoints.dart';
 
 class ComptesPage extends StatefulWidget {
-  const ComptesPage({super.key});
+  final int? clientId;
+  final String? clientLabel;
+
+  const ComptesPage({super.key, this.clientId, this.clientLabel});
 
   @override
   State<ComptesPage> createState() => _ComptesPageState();
@@ -47,6 +50,9 @@ class _ComptesPageState extends State<ComptesPage>
     try {
       final response = await _apiClient.dio.get(
         ApiEndpoints.comptabiliteComptes,
+        queryParameters: {
+          if (widget.clientId != null) 'client_id': widget.clientId,
+        },
       );
 
       if (!mounted) return;
@@ -71,7 +77,10 @@ class _ComptesPageState extends State<ComptesPage>
     try {
       final response = await _apiClient.dio.get(
         ApiEndpoints.comptabiliteJournal,
-        queryParameters: {'exercice': _exercice},
+        queryParameters: {
+          'exercice': _exercice,
+          if (widget.clientId != null) 'client_id': widget.clientId,
+        },
       );
 
       if (!mounted) return;
@@ -110,6 +119,7 @@ class _ComptesPageState extends State<ComptesPage>
           'exercice': _exercice,
           if (_grandLivreFiltreCompte != null)
             'compte': _grandLivreFiltreCompte!['numero'],
+          if (widget.clientId != null) 'client_id': widget.clientId,
         },
       );
 
@@ -166,7 +176,12 @@ class _ComptesPageState extends State<ComptesPage>
   Future<void> _ouvrirNouvelleEcriture() async {
     final created = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => EcritureFormPage(comptes: _comptes)),
+      MaterialPageRoute(
+        builder: (_) => EcritureFormPage(
+          comptes: _comptes,
+          clientId: widget.clientId,
+        ),
+      ),
     );
 
     if (created == true) {
@@ -179,9 +194,11 @@ class _ComptesPageState extends State<ComptesPage>
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
       appBar: AppBar(
-        title: const Text(
-          'Comptes',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          widget.clientLabel != null
+              ? 'Comptes — ${widget.clientLabel}'
+              : 'Comptes (cabinet)',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
@@ -494,8 +511,13 @@ class _LigneEcritureForm {
 
 class EcritureFormPage extends StatefulWidget {
   final List<Map<String, dynamic>> comptes;
+  final int? clientId;
 
-  const EcritureFormPage({super.key, required this.comptes});
+  const EcritureFormPage({
+    super.key,
+    required this.comptes,
+    this.clientId,
+  });
 
   @override
   State<EcritureFormPage> createState() => _EcritureFormPageState();
@@ -617,6 +639,7 @@ class _EcritureFormPageState extends State<EcritureFormPage> {
           'date_debut': premierJourMois.toIso8601String().split('T').first,
           'date_fin': premierJourMoisSuivant.toIso8601String().split('T').first,
           'statut': 'OUVERTE',
+          if (widget.clientId != null) 'client_id': widget.clientId,
         },
       );
 
