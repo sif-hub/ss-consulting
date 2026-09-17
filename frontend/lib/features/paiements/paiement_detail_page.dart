@@ -113,7 +113,7 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
     }
   }
 
-  Future<void> _payerAvecNotchPay() async {
+  Future<void> _payerAvecFapshi() async {
     if (_resteAPayer <= 0) {
       _showMessage(
         'Cette facture est déjà entièrement payée.',
@@ -130,7 +130,7 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Paiement Notch Pay'),
+          title: const Text('Paiement Fapshi'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,19 +218,19 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
     });
 
     try {
-      final result = await _service.initierPaiementNotchPay(
+      final result = await _service.initierPaiementFapshi(
         factureId: widget.facture.id,
         montant: montant,
       );
 
       if (!mounted) return;
 
-      final uri = Uri.tryParse(result.authorizationUrl);
+      final uri = Uri.tryParse(result.paymentLink);
 
       if (uri == null ||
           !(uri.scheme == 'http' || uri.scheme == 'https')) {
         throw Exception(
-          'URL de paiement Notch Pay invalide.',
+          'Lien de paiement Fapshi invalide.',
         );
       }
 
@@ -241,14 +241,15 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
 
       if (!launched) {
         throw Exception(
-          'Impossible d’ouvrir la page de paiement Notch Pay.',
+          'Impossible d’ouvrir la page de paiement Fapshi.',
         );
       }
 
       if (!mounted) return;
 
       _showMessage(
-        'Paiement initialisé. Finalisez le paiement dans Notch Pay.',
+        'Paiement initialisé. Finalisez le paiement dans Fapshi, '
+        'puis revenez rafraîchir le statut.',
         Colors.orange,
       );
     } catch (e) {
@@ -428,7 +429,7 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
       child: FilledButton.icon(
         onPressed: alreadyPaid || _isPaying
             ? null
-            : _payerAvecNotchPay,
+            : _payerAvecFapshi,
         icon: _isPaying
             ? const SizedBox(
                 width: 20,
@@ -444,7 +445,7 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
               ? 'Initialisation...'
               : alreadyPaid
                   ? 'Facture entièrement payée'
-                  : 'Payer avec Notch Pay',
+                  : 'Payer avec Fapshi',
         ),
         style: FilledButton.styleFrom(
           backgroundColor: const Color(0xFF10B981),
@@ -604,26 +605,64 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
             ),
           ],
         ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 9,
-            vertical: 5,
-          ),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            paiement.statut,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (paiement.modePaiement == 'Fapshi' &&
+                paiement.statut == 'En attente')
+              IconButton(
+                tooltip: 'Vérifier le statut',
+                onPressed: () => _verifierStatutFapshi(paiement),
+                icon: const Icon(Icons.refresh_rounded, size: 20),
+              ),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 9,
+                vertical: 5,
+              ),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                paiement.statut,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
+  }
+
+  Future<void> _verifierStatutFapshi(Paiement paiement) async {
+    try {
+      final result = await _service.verifierStatutFapshi(paiement.id);
+
+      if (!mounted) return;
+
+      final statut = result['statut']?.toString() ?? paiement.statut;
+
+      _showMessage(
+        statut == 'Validé'
+            ? 'Paiement confirmé !'
+            : 'Statut Fapshi : $statut',
+        statut == 'Validé' ? Colors.green : Colors.orange,
+      );
+
+      await _loadPaiements();
+    } catch (e) {
+      if (!mounted) return;
+
+      _showMessage(
+        'Erreur lors de la vérification : $e',
+        Colors.red,
+      );
+    }
   }
 
   @override

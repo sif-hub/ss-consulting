@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../core/api/api_client.dart';
 import '../../models/paiement.dart';
-import '../../models/notchpay_init.dart';
+import '../../models/fapshi_init.dart';
 
 class PaiementService {
   final ApiClient _apiClient = ApiClient();
@@ -82,21 +82,32 @@ class PaiementService {
     );
   }
 
-  Future<NotchPayInit> initierPaiementNotchPay({
+  Future<FapshiInit> initierPaiementFapshi({
     required int factureId,
     required double montant,
   }) async {
     final Response response = await _apiClient.dio.post(
-      '/paiements/notchpay/initier',
+      '/paiements/fapshi/initier',
       data: {
         'facture_id': factureId,
         'montant': montant,
       },
     );
 
-    return NotchPayInit.fromJson(
+    return FapshiInit.fromJson(
       Map<String, dynamic>.from(response.data as Map),
     );
+  }
+
+  /// Interroge directement Fapshi pour rafraîchir le statut d'un
+  /// paiement en attente (utile pendant que le client règle sur la
+  /// page Fapshi, avant que le webhook ne confirme côté serveur).
+  Future<Map<String, dynamic>> verifierStatutFapshi(int paiementId) async {
+    final Response response = await _apiClient.dio.get(
+      '/paiements/fapshi/$paiementId/statut',
+    );
+
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
   Future<Paiement> updatePaiement(

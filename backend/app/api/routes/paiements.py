@@ -1,11 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Query
 from datetime import datetime
 from uuid import uuid4
 
-from app.schemas.notchpay import NotchPayInitRequest, NotchPayInitResponse
-from app.services.notchpay_service import notchpay_service
+from app.schemas.fapshi import (
+    FapshiInitRequest,
+    FapshiInitResponse,
+    FapshiStatutResponse,
+)
+from app.services.fapshi_service import fapshi_service
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.dependencies import get_current_user, require_roles
 from app.core.database import get_db
 from app.models.user import User
@@ -305,16 +310,16 @@ def confirmer_paiement_mobile(
 
 
 # ============================================================
-# NOTCH PAY
+# FAPSHI
 # ============================================================
 
 @router.post(
-    "/notchpay/initier",
-    response_model=NotchPayInitResponse,
+    "/fapshi/initier",
+    response_model=FapshiInitResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def initier_paiement_notchpay(
-    data: NotchPayInitRequest,
+async def initier_paiement_fapshi(
+    data: FapshiInitRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -358,24 +363,6 @@ async def initier_paiement_notchpay(
             detail="Aucun client associé à cette facture.",
         )
 
-    if not client.email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Le client doit avoir une adresse e-mail "
-                "pour effectuer un paiement Notch Pay."
-            ),
-        )
-
-    if not client.telephone:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Le client doit avoir un numéro de téléphone "
-                "pour effectuer un paiement Notch Pay."
-            ),
-        )
-
     # --------------------------------------------------------
     # RESTE A PAYER
     # --------------------------------------------------------
@@ -411,32 +398,28 @@ async def initier_paiement_notchpay(
     )
 
     # --------------------------------------------------------
-    # INITIALISATION NOTCH PAY
+    # INITIALISATION FAPSHI
     # --------------------------------------------------------
 
-    notchpay_response = await notchpay_service.create_payment(
+    fapshi_response = await fapshi_service.initiate_payment(
         amount=data.montant,
-        currency="XAF",
+        external_id=reference,
         email=client.email,
-        phone=client.telephone,
-        reference=reference,
+        redirect_url=settings.FAPSHI_REDIRECT_URL or None,
+        message=f"Facture {facture.numero}",
     )
 
-    authorization_url = (
-        notchpay_service.extract_authorization_url(
-            notchpay_response
-        )
-    )
+    payment_link = fapshi_response.get("link")
 
-    if not authorization_url:
+    if not payment_link:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail={
                 "message": (
-                    "Notch Pay a répondu mais "
-                    "aucune URL de paiement n'a été trouvée."
+                    "Fapshi a répondu mais "
+                    "aucun lien de paiement n'a été trouvé."
                 ),
-                "response": notchpay_response,
+                "response": fapshi_response,
             },
         )
 
@@ -459,15 +442,15 @@ async def initier_paiement_notchpay(
         taux_commission=taux_commission,
         montant_commission=montant_commission,
         montant_total=montant_total,
-        mode_paiement="Notch Pay",
+        mode_paiement="Fapshi",
         operateur=None,
-        transaction_id=None,
+        transaction_id=fapshi_response.get("transId"),
         numero_client=client.telephone,
         frais=0,
         reference=reference,
         date_paiement=datetime.utcnow(),
         statut="En attente",
-        notes="Paiement initié via Notch Pay.",
+        notes="Paiement initié via Fapshi.",
         actif=True,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
@@ -477,129 +460,122 @@ async def initier_paiement_notchpay(
     db.commit()
     db.refresh(paiement)
 
-    return NotchPayInitResponse(
+    return FapshiInitResponse(
         paiement_id=paiement.id,
         facture_id=facture.id,
         reference=reference,
         montant=data.montant,
         statut=paiement.statut,
-        authorization_url=authorization_url,
+        payment_link=payment_link,
     )
-
-
-# ============================================================
-# NOTCH PAY WEBHOOK
-# ============================================================
-
-from fastapi import Request
 
 
 @router.get(
-    "/notchpay/webhook",
+    "/fapshi/{paiement_id}/statut",
+    response_model=FapshiStatutResponse,
 )
-async def notchpay_webhook_callback(
-    reference: str | None = None,
-    trxref: str | None = None,
-    notchpay_trxref: str | None = None,
-    status_callback: str | None = Query(default=None, alias="status"),
+async def verifier_statut_fapshi(
+    paiement_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
-    Callback GET de redirection Notch Pay (retour navigateur du client
-    après paiement).
+    Interroge directement l'API Fapshi pour connaître l'état réel d'un
+    paiement et met à jour l'enregistrement local en conséquence.
 
-    Ce endpoint est purement informatif : il ne fait QUE lire le statut
-    déjà enregistré en base. Le paramètre `status` fourni ici vient du
-    navigateur du client et n'est donc pas fiable — il ne doit jamais
-    servir à valider un paiement ou une facture. Seul le webhook POST,
-    signé HMAC (`/notchpay/webhook`), a l'autorité pour faire cette mise
-    à jour.
+    Sert de filet de sécurité (et d'outil de test en développement, où
+    le webhook Fapshi ne peut pas atteindre la machine locale) : le
+    webhook POST reste la source d'autorité en production, mais ce
+    endpoint permet à l'admin ou au client de rafraîchir manuellement
+    le statut affiché sans attendre.
     """
 
-    payment_reference = (
-        reference
-        or trxref
-        or notchpay_trxref
-    )
-
-    if not payment_reference:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Référence Notch Pay absente.",
-        )
-
-    paiement = (
-        db.query(Paiement)
-        .filter(
-            Paiement.reference == payment_reference,
-            Paiement.actif.is_(True),
-        )
-        .first()
-    )
+    paiement = get_paiement(db, paiement_id)
 
     if paiement is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Paiement SS Consulting introuvable.",
+            detail="Paiement introuvable",
         )
 
-    return {
-        "status": "received",
-        "message": (
-            "Statut réel du paiement (confirmé uniquement par le "
-            "webhook Notch Pay signé)."
-        ),
-        "paiement_id": paiement.id,
-        "facture_id": paiement.facture_id,
-        "reference": paiement.reference,
-        "statut": paiement.statut,
-        "callback_status": status_callback,
-    }
+    ensure_paiement_access(current_user, paiement)
+
+    if paiement.mode_paiement != "Fapshi":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ce paiement n'est pas un paiement Fapshi.",
+        )
+
+    if not paiement.transaction_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Aucun identifiant de transaction Fapshi pour ce paiement.",
+        )
+
+    fapshi_data = await fapshi_service.get_payment_status(
+        paiement.transaction_id,
+    )
+
+    fapshi_status = fapshi_data.get("status", "")
+
+    if fapshi_status == "SUCCESSFUL" and paiement.statut != "Validé":
+        paiement.statut = "Validé"
+        paiement.updated_at = datetime.utcnow()
+
+        facture = (
+            db.query(Facture)
+            .filter(Facture.id == paiement.facture_id)
+            .first()
+        )
+
+        if facture:
+            update_facture_statut(db, facture)
+
+        db.commit()
+        db.refresh(paiement)
+
+    elif fapshi_status == "FAILED" and paiement.statut not in {"Validé", "Échec"}:
+        paiement.statut = "Échec"
+        paiement.updated_at = datetime.utcnow()
+        db.commit()
+        db.refresh(paiement)
+
+    elif fapshi_status == "EXPIRED" and paiement.statut not in {"Validé", "Expiré"}:
+        paiement.statut = "Expiré"
+        paiement.updated_at = datetime.utcnow()
+        db.commit()
+        db.refresh(paiement)
+
+    return FapshiStatutResponse(
+        paiement_id=paiement.id,
+        facture_id=paiement.facture_id,
+        reference=paiement.reference or "",
+        statut=paiement.statut,
+        fapshi_status=fapshi_status,
+    )
 
 
 @router.post(
-    "/notchpay/webhook",
+    "/fapshi/webhook",
 )
-async def notchpay_webhook(
+async def fapshi_webhook(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    # --------------------------------------------------------
-    # PAYLOAD BRUT
-    # --------------------------------------------------------
+    """
+    Webhook serveur-à-serveur Fapshi : seule source d'autorité pour
+    valider un paiement en production. Authentifié par correspondance
+    exacte du secret configuré sur le tableau de bord Fapshi (en-tête
+    x-wh-secret), pas par signature HMAC du corps.
+    """
 
-    payload = await request.body()
+    secret_header = request.headers.get("x-wh-secret")
 
-    # --------------------------------------------------------
-    # SIGNATURE
-    # --------------------------------------------------------
-
-    signature = request.headers.get(
-        "x-notch-signature"
-    )
-
-    if not signature:
+    if not fapshi_service.verify_webhook_secret(secret_header):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Signature Notch Pay absente.",
+            detail="Secret Fapshi invalide.",
         )
-
-    # --------------------------------------------------------
-    # VERIFICATION HMAC
-    # --------------------------------------------------------
-
-    if not notchpay_service.verify_webhook_signature(
-        payload,
-        signature,
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Signature Notch Pay invalide.",
-        )
-
-    # --------------------------------------------------------
-    # JSON
-    # --------------------------------------------------------
 
     try:
         event = await request.json()
@@ -609,34 +585,21 @@ async def notchpay_webhook(
             detail="Payload JSON invalide.",
         )
 
-    event_type = event.get("type")
+    external_id = event.get("externalId")
+    trans_id = event.get("transId")
+    fapshi_status = event.get("status")
+    fapshi_amount = event.get("amount")
 
-    payment_data = event.get("data") or {}
-
-    reference = payment_data.get("reference")
-
-    transaction_id = payment_data.get("id")
-
-    notchpay_amount = payment_data.get("amount")
-
-    # --------------------------------------------------------
-    # REFERENCE OBLIGATOIRE
-    # --------------------------------------------------------
-
-    if not reference:
+    if not external_id:
         return {
             "status": "ignored",
-            "message": "Aucune référence de paiement.",
+            "message": "Aucun externalId dans le payload.",
         }
-
-    # --------------------------------------------------------
-    # RECHERCHE DU PAIEMENT
-    # --------------------------------------------------------
 
     paiement = (
         db.query(Paiement)
         .filter(
-            Paiement.reference == reference,
+            Paiement.reference == external_id,
             Paiement.actif.is_(True),
         )
         .first()
@@ -646,15 +609,11 @@ async def notchpay_webhook(
         return {
             "status": "ignored",
             "message": "Paiement SS Consulting introuvable.",
-            "reference": reference,
+            "external_id": external_id,
         }
 
-    # --------------------------------------------------------
-    # IDEMPOTENCE
-    # --------------------------------------------------------
-
     if (
-        event_type == "payment.complete"
+        fapshi_status == "SUCCESSFUL"
         and paiement.statut == "Validé"
     ):
         return {
@@ -662,39 +621,29 @@ async def notchpay_webhook(
             "paiement_id": paiement.id,
         }
 
-    # --------------------------------------------------------
-    # TRANSACTION NOTCH PAY
-    # --------------------------------------------------------
-
-    if transaction_id:
-        paiement.transaction_id = str(
-            transaction_id
-        )[:100]
+    if trans_id:
+        paiement.transaction_id = str(trans_id)[:100]
 
     paiement.updated_at = datetime.utcnow()
 
-    # --------------------------------------------------------
-    # EVENEMENTS
-    # --------------------------------------------------------
+    if fapshi_status == "SUCCESSFUL":
 
-    if event_type == "payment.complete":
-
-        if notchpay_amount is not None:
+        if fapshi_amount is not None:
             try:
-                notchpay_amount = float(notchpay_amount)
+                fapshi_amount = float(fapshi_amount)
             except (TypeError, ValueError):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Montant Notch Pay invalide.",
+                    detail="Montant Fapshi invalide.",
                 )
 
-            if round(notchpay_amount, 2) != round(paiement.montant, 2):
+            if round(fapshi_amount, 2) != round(paiement.montant, 2):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail={
-                        "message": "Le montant Notch Pay ne correspond pas au paiement.",
+                        "message": "Le montant Fapshi ne correspond pas au paiement.",
                         "montant_attendu": paiement.montant,
-                        "montant_recu": notchpay_amount,
+                        "montant_recu": fapshi_amount,
                     },
                 )
 
@@ -709,21 +658,16 @@ async def notchpay_webhook(
         )
 
         if facture:
-
             update_facture_statut(
                 db,
                 facture,
             )
 
-    elif event_type == "payment.failed":
+    elif fapshi_status == "FAILED":
 
         paiement.statut = "Échec"
 
-    elif event_type == "payment.canceled":
-
-        paiement.statut = "Annulé"
-
-    elif event_type == "payment.expired":
+    elif fapshi_status == "EXPIRED":
 
         paiement.statut = "Expiré"
 
@@ -732,7 +676,7 @@ async def notchpay_webhook(
 
         return {
             "status": "ignored",
-            "event": event_type,
+            "fapshi_status": fapshi_status,
         }
 
     db.commit()
@@ -740,7 +684,7 @@ async def notchpay_webhook(
 
     return {
         "status": "success",
-        "event": event_type,
+        "fapshi_status": fapshi_status,
         "paiement_id": paiement.id,
         "reference": paiement.reference,
         "statut": paiement.statut,

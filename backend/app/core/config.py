@@ -28,12 +28,12 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.BACKEND_CORS_ORIGINS.split(",") if origin.strip()]
 
     # Paiements et commissions
-    # Notch Pay
-    NOTCHPAY_PUBLIC_KEY: str = ""
-    NOTCHPAY_PRIVATE_KEY: str = ""
-    NOTCHPAY_HASH_KEY: str = ""
-    NOTCHPAY_BASE_URL: str = "https://api.notchpay.co"
-    NOTCHPAY_CALLBACK_URL: str = ""
+    # Fapshi
+    FAPSHI_API_USER: str = ""
+    FAPSHI_API_KEY: str = ""
+    FAPSHI_BASE_URL: str = "https://sandbox.fapshi.com"
+    FAPSHI_WEBHOOK_SECRET: str = ""
+    FAPSHI_REDIRECT_URL: str = ""
     PAYMENT_COMMISSION_RATE: float = 2.0
     PAYMENT_COMMISSION_ACCOUNT: str = ""
 
