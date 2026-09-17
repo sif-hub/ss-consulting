@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -35,10 +35,13 @@ from app.services.comptabilite_service import (
     grand_livre,
     balance_comptable,
 )
+from app.models.client import Client
 from app.models.comptabilite_syscohada import (
     PeriodeComptable,
     EcritureComptable,
+    CompteComptable,
 )
+from app.seeds.plan_comptable_syscohada import seed_plan_comptable
 
 
 router = APIRouter(
@@ -141,6 +144,7 @@ def creer_periode_comptable(
             db,
             exercice=data.exercice,
             mois=data.mois,
+            client_id=data.client_id,
         )
 
         return periode
@@ -158,12 +162,16 @@ def creer_periode_comptable(
 )
 def lister_periodes(
     exercice: int,
+    client_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(1, 2, 3, 4, 5)),
 ):
     return (
         db.query(PeriodeComptable)
-        .filter(PeriodeComptable.exercice == exercice)
+        .filter(
+            PeriodeComptable.exercice == exercice,
+            PeriodeComptable.client_id == client_id,
+        )
         .order_by(PeriodeComptable.mois.asc())
         .all()
     )
@@ -281,6 +289,7 @@ def journal(
     exercice: int,
     journal: str | None = None,
     mois: int | None = Query(default=None, ge=1, le=12),
+    client_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(1, 2, 3, 4, 5)),
 ):
@@ -290,6 +299,7 @@ def journal(
             exercice=exercice,
             journal=journal,
             mois=mois,
+            client_id=client_id,
         )
 
     except ValueError as e:
@@ -310,6 +320,7 @@ def journal(
 def grand_livre_comptable(
     exercice: int,
     compte: str | None = None,
+    client_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(1, 2, 3, 4, 5)),
 ):
@@ -318,6 +329,7 @@ def grand_livre_comptable(
             db,
             exercice=exercice,
             compte_numero=compte,
+            client_id=client_id,
         )
 
     except ValueError as e:
@@ -337,6 +349,7 @@ def grand_livre_comptable(
 )
 def balance(
     exercice: int,
+    client_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(1, 2, 3, 4, 5)),
 ):
@@ -344,6 +357,7 @@ def balance(
         return balance_comptable(
             db,
             exercice=exercice,
+            client_id=client_id,
         )
 
     except ValueError as e:
@@ -362,7 +376,89 @@ def balance(
     response_model=list[CompteComptableResponse],
 )
 def comptes(
+    client_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(1, 2, 3, 4, 5)),
 ):
-    return lister_comptes(db)
+    return lister_comptes(db, client_id=client_id)
+
+
+# ============================================================
+# COMPTABILITÉ CLIENT — INITIALISATION
+# ============================================================
+
+@router.get(
+    "/clients",
+    response_model=list[dict],
+)
+def clients_avec_comptabilite(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles(1, 2, 3, 4, 5)),
+):
+    """
+    Liste les clients pour lesquels une comptabilité SYSCOHADA a déjà
+    été initialisée par le cabinet (au moins un compte leur appartient).
+    """
+
+    client_ids = (
+        db.query(CompteComptable.client_id)
+        .filter(CompteComptable.client_id.isnot(None))
+        .distinct()
+        .all()
+    )
+
+    ids = [row[0] for row in client_ids]
+
+    if not ids:
+        return []
+
+    clients = (
+        db.query(Client)
+        .filter(Client.id.in_(ids))
+        .order_by(Client.nom.asc())
+        .all()
+    )
+
+    return [
+        {
+            "id": client.id,
+            "nom": client.nom,
+            "raison_sociale": client.raison_sociale,
+        }
+        for client in clients
+    ]
+
+
+@router.post(
+    "/clients/{client_id}/initialiser",
+    status_code=status.HTTP_201_CREATED,
+)
+def initialiser_comptabilite_client(
+    client_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles(1, 5)),
+):
+    """
+    Crée le plan comptable SYSCOHADA complet (126 comptes) pour ce
+    client, séparé de celui du cabinet et de celui des autres clients.
+    Sans effet si déjà initialisé (idempotent).
+    """
+
+    client = (
+        db.query(Client)
+        .filter(Client.id == client_id)
+        .first()
+    )
+
+    if client is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Client introuvable.",
+        )
+
+    nombre = seed_plan_comptable(db, client_id=client_id)
+
+    return {
+        "client_id": client_id,
+        "comptes_crees": nombre,
+    }

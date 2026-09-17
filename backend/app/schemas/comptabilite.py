@@ -30,6 +30,10 @@ class ComptabiliteDashboardResponse(BaseModel):
 # ============================================================
 
 class PeriodeComptableBase(BaseModel):
+    client_id: int | None = Field(
+        default=None,
+        description="Cabinet si absent, sinon comptabilité de ce client.",
+    )
     exercice: int = Field(..., ge=2000, le=2100)
     mois: int = Field(..., ge=1, le=12)
     date_debut: date
@@ -52,6 +56,10 @@ class PeriodeComptableResponse(PeriodeComptableBase):
 # ============================================================
 
 class CompteComptableBase(BaseModel):
+    client_id: int | None = Field(
+        default=None,
+        description="Cabinet si absent, sinon plan comptable de ce client.",
+    )
     numero: str = Field(..., min_length=1, max_length=30)
     libelle: str = Field(..., min_length=1, max_length=255)
     classe: str = Field(..., min_length=1, max_length=10)
@@ -232,6 +240,7 @@ class BalanceCompteResponse(BaseModel):
 
 class BalanceComptableResponse(BaseModel):
     exercice: int
+    client_id: int | None = None
 
     total_debit: Decimal
     total_credit: Decimal

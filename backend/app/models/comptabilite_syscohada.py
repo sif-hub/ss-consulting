@@ -5,11 +5,11 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
     Text,
-    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +20,15 @@ class PeriodeComptable(Base):
     __tablename__ = "periodes_comptables"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+
+    # NULL = comptabilité propre du cabinet. Non NULL = comptabilité
+    # tenue par le cabinet pour le compte de ce client.
+    client_id: Mapped[int | None] = mapped_column(
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+
     exercice: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     mois: Mapped[int] = mapped_column(Integer, nullable=False)
     date_debut: Mapped[datetime] = mapped_column(Date, nullable=False)
@@ -36,11 +45,24 @@ class PeriodeComptable(Base):
         cascade="all, delete-orphan",
     )
 
+    # Unicité (exercice, mois) par périmètre : deux index partiels car
+    # NULL n'est jamais égal à NULL pour une contrainte UNIQUE classique
+    # (plusieurs lignes "cabinet" sur le même mois passeraient sinon).
     __table_args__ = (
-        UniqueConstraint(
+        Index(
+            "uq_periode_client_exercice_mois",
+            "client_id",
             "exercice",
             "mois",
-            name="uq_periode_comptable_exercice_mois",
+            unique=True,
+            postgresql_where=client_id.isnot(None),
+        ),
+        Index(
+            "uq_periode_cabinet_exercice_mois",
+            "exercice",
+            "mois",
+            unique=True,
+            postgresql_where=client_id.is_(None),
         ),
     )
 
@@ -49,10 +71,18 @@ class CompteComptable(Base):
     __tablename__ = "comptes_comptables"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+
+    # NULL = plan comptable du cabinet. Non NULL = plan comptable propre
+    # à ce client (le cabinet tient sa comptabilité séparément).
+    client_id: Mapped[int | None] = mapped_column(
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+
     numero: Mapped[str] = mapped_column(
         String(30),
         nullable=False,
-        unique=True,
         index=True,
     )
     libelle: Mapped[str] = mapped_column(
@@ -77,6 +107,22 @@ class CompteComptable(Base):
     lignes = relationship(
         "LigneEcriture",
         back_populates="compte",
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_compte_client_numero",
+            "client_id",
+            "numero",
+            unique=True,
+            postgresql_where=client_id.isnot(None),
+        ),
+        Index(
+            "uq_compte_cabinet_numero",
+            "numero",
+            unique=True,
+            postgresql_where=client_id.is_(None),
+        ),
     )
 
 

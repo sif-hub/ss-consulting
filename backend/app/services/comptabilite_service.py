@@ -561,29 +561,39 @@ from app.models.comptabilite_syscohada import (
 def get_compte(
     db: Session,
     numero: str,
+    client_id: int | None = None,
 ) -> CompteComptable | None:
     """
-    Recherche un compte comptable par son numéro.
+    Recherche un compte comptable par son numéro, dans le périmètre
+    demandé (cabinet si client_id est None, sinon ce client).
     """
 
     return (
         db.query(CompteComptable)
         .filter(
             CompteComptable.numero == numero,
+            CompteComptable.client_id == client_id,
             CompteComptable.actif.is_(True),
         )
         .first()
     )
 
 
-def lister_comptes(db: Session) -> list[CompteComptable]:
+def lister_comptes(
+    db: Session,
+    client_id: int | None = None,
+) -> list[CompteComptable]:
     """
-    Retourne le plan comptable (comptes actifs), trié par numéro.
+    Retourne le plan comptable (comptes actifs) du périmètre demandé
+    (cabinet si client_id est None, sinon ce client), trié par numéro.
     """
 
     return (
         db.query(CompteComptable)
-        .filter(CompteComptable.actif.is_(True))
+        .filter(
+            CompteComptable.client_id == client_id,
+            CompteComptable.actif.is_(True),
+        )
         .order_by(CompteComptable.numero.asc())
         .all()
     )
@@ -593,9 +603,10 @@ def get_periode(
     db: Session,
     exercice: int,
     mois: int,
+    client_id: int | None = None,
 ) -> PeriodeComptable | None:
     """
-    Recherche une période comptable.
+    Recherche une période comptable dans le périmètre demandé.
     """
 
     return (
@@ -603,6 +614,7 @@ def get_periode(
         .filter(
             PeriodeComptable.exercice == exercice,
             PeriodeComptable.mois == mois,
+            PeriodeComptable.client_id == client_id,
         )
         .first()
     )
@@ -612,12 +624,14 @@ def creer_periode(
     db: Session,
     exercice: int,
     mois: int,
+    client_id: int | None = None,
 ) -> PeriodeComptable:
     """
-    Crée une période comptable mensuelle.
+    Crée une période comptable mensuelle, dans le périmètre demandé
+    (cabinet si client_id est None, sinon ce client).
 
-    Une seule période est autorisée pour un couple
-    exercice + mois.
+    Une seule période est autorisée pour un couple exercice + mois,
+    par périmètre.
     """
 
     if mois < 1 or mois > 12:
@@ -629,6 +643,7 @@ def creer_periode(
         db,
         exercice,
         mois,
+        client_id=client_id,
     )
 
     if periode_existante:
@@ -661,6 +676,7 @@ def creer_periode(
         ).date()
 
     periode = PeriodeComptable(
+        client_id=client_id,
         exercice=exercice,
         mois=mois,
         date_debut=date_debut,
@@ -816,6 +832,13 @@ def creer_ecriture(
                 f"n'existe pas ou est inactif."
             )
 
+        if compte.client_id != periode.client_id:
+            db.rollback()
+            raise ValueError(
+                f"Le compte ID {ligne.compte_id} n'appartient pas "
+                f"au même périmètre (cabinet/client) que la période."
+            )
+
         ligne_db = LigneEcriture(
             ecriture_id=ecriture.id,
             compte_id=ligne.compte_id,
@@ -909,9 +932,11 @@ def journal_comptable(
     exercice: int,
     journal: str | None = None,
     mois: int | None = None,
+    client_id: int | None = None,
 ) -> list[dict]:
     """
-    Retourne le journal comptable.
+    Retourne le journal comptable du périmètre demandé (cabinet si
+    client_id est None, sinon ce client).
 
     Seules les écritures validées sont prises en compte.
     """
@@ -939,6 +964,7 @@ def journal_comptable(
         )
         .filter(
             PeriodeComptable.exercice == exercice,
+            PeriodeComptable.client_id == client_id,
             EcritureComptable.statut == "VALIDE",
         )
     )
@@ -982,9 +1008,11 @@ def grand_livre(
     *,
     exercice: int,
     compte_numero: str | None = None,
+    client_id: int | None = None,
 ) -> list[dict]:
     """
-    Retourne le grand livre par compte.
+    Retourne le grand livre par compte, pour le périmètre demandé
+    (cabinet si client_id est None, sinon ce client).
 
     Seules les écritures validées sont prises en compte.
     """
@@ -1012,6 +1040,7 @@ def grand_livre(
         )
         .filter(
             PeriodeComptable.exercice == exercice,
+            PeriodeComptable.client_id == client_id,
             EcritureComptable.statut == "VALIDE",
         )
     )
@@ -1089,9 +1118,11 @@ def balance_comptable(
     db: Session,
     *,
     exercice: int,
+    client_id: int | None = None,
 ) -> dict:
     """
-    Génère la balance comptable de l'exercice.
+    Génère la balance comptable de l'exercice, pour le périmètre
+    demandé (cabinet si client_id est None, sinon ce client).
 
     Seules les écritures validées sont prises en compte.
     """
@@ -1125,7 +1156,9 @@ def balance_comptable(
         )
         .filter(
             CompteComptable.actif.is_(True),
+            CompteComptable.client_id == client_id,
             PeriodeComptable.exercice == exercice,
+            PeriodeComptable.client_id == client_id,
             EcritureComptable.statut == "VALIDE",
         )
         .group_by(
@@ -1180,6 +1213,7 @@ def balance_comptable(
 
     return {
         "exercice": exercice,
+        "client_id": client_id,
         "total_debit": total_debit_general,
         "total_credit": total_credit_general,
         "total_solde_debiteur": total_solde_debiteur,

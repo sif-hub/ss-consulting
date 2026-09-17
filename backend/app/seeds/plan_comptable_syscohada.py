@@ -172,11 +172,18 @@ PLAN_COMPTABLE = [
 ]
 
 
-def seed_plan_comptable(session: Session) -> int:
+def seed_plan_comptable(
+    session: Session,
+    client_id: int | None = None,
+) -> int:
     """
-    Insère le plan comptable dans la base.
+    Insère le plan comptable SYSCOHADA dans la base.
 
-    Les comptes déjà présents sont ignorés.
+    Sans client_id : plan comptable propre du cabinet (comportement
+    historique). Avec client_id : plan comptable dédié à ce client,
+    séparé de celui du cabinet et de celui des autres clients.
+
+    Les comptes déjà présents (pour ce périmètre) sont ignorés.
     Retourne le nombre de comptes nouvellement créés.
     """
 
@@ -185,7 +192,8 @@ def seed_plan_comptable(session: Session) -> int:
     for numero, libelle, classe, sous_classe in PLAN_COMPTABLE:
         compte_existant = session.scalar(
             select(CompteComptable).where(
-                CompteComptable.numero == numero
+                CompteComptable.numero == numero,
+                CompteComptable.client_id == client_id,
             )
         )
 
@@ -193,6 +201,7 @@ def seed_plan_comptable(session: Session) -> int:
             continue
 
         compte = CompteComptable(
+            client_id=client_id,
             numero=numero,
             libelle=libelle,
             classe=classe,
