@@ -78,8 +78,27 @@ router = APIRouter(
 def list_paiements(
     facture_id: int | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(1, 2, 3, 5)),
+    current_user: User = Depends(get_current_user),
 ):
+    if current_user.role_id == 6:
+        if current_user.client_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Votre compte Client n'est associé à aucun client.",
+            )
+
+        return get_paiements(
+            db,
+            facture_id=facture_id,
+            client_id=current_user.client_id,
+        )
+
+    if current_user.role_id not in (1, 2, 3, 5):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Vous n'avez pas les permissions nécessaires",
+        )
+
     return get_paiements(db, facture_id)
 
 

@@ -91,6 +91,7 @@ def update_facture_statut(
 def get_paiements(
     db: Session,
     facture_id: int | None = None,
+    client_id: int | None = None,
 ):
 
     query = (
@@ -101,6 +102,11 @@ def get_paiements(
     if facture_id is not None:
         query = query.filter(
             Paiement.facture_id == facture_id
+        )
+
+    if client_id is not None:
+        query = query.join(Facture).filter(
+            Facture.client_id == client_id
         )
 
     return (
