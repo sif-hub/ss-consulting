@@ -90,13 +90,10 @@ def create_user(
 
     role = get_role_by_id(db, role_id)
 
-    if role_id == 6:
-        if client_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Un compte Client doit être associé à un client.",
-            )
-
+    # L'association à un client est optionnelle, y compris pour le
+    # rôle Client : l'admin peut créer le compte d'abord et l'associer
+    # plus tard. Si un client_id est fourni, on le valide quand même.
+    if role_id == 6 and client_id is not None:
         client = db.query(Client).filter(Client.id == client_id).first()
 
         if client is None:
@@ -164,13 +161,7 @@ def update_user(
 
     role = get_role_by_id(db, role_id)
 
-    if role_id == 6:
-        if client_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Un compte Client doit être associé à un client.",
-            )
-
+    if role_id == 6 and client_id is not None:
         client = db.query(Client).filter(Client.id == client_id).first()
 
         if client is None:
@@ -181,7 +172,10 @@ def update_user(
 
         existing_client_user = (
             db.query(User)
-            .filter(User.client_id == client_id)
+            .filter(
+                User.client_id == client_id,
+                User.id != user_id,
+            )
             .first()
         )
 

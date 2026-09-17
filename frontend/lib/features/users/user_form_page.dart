@@ -111,18 +111,6 @@ class _UserFormPageState extends State<UserFormPage> {
       return;
     }
 
-    if (_selectedRoleId == _roleClientId && _selectedClientId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Un compte de rôle Client doit être associé à un client '
-            'existant : sélectionnez-le ci-dessous.',
-          ),
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _saving = true;
     });
@@ -337,21 +325,28 @@ class _UserFormPageState extends State<UserFormPage> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: DropdownButtonFormField<int>(
+      child: DropdownButtonFormField<int?>(
         initialValue: _selectedClientId,
         decoration: const InputDecoration(
-          labelText: 'Client associé',
+          labelText: 'Client associé (optionnel)',
           helperText:
-              'Ce compte ne pourra voir que les données de ce client.',
+              'Peut être laissé vide et associé plus tard en modifiant '
+              'le compte.',
           prefixIcon: Icon(Icons.business_outlined),
           border: OutlineInputBorder(),
         ),
-        items: _clients.map((client) {
-          return DropdownMenuItem<int>(
-            value: client.id,
-            child: Text(client.nomComplet),
-          );
-        }).toList(),
+        items: [
+          const DropdownMenuItem<int?>(
+            value: null,
+            child: Text('Aucun pour l’instant'),
+          ),
+          ..._clients.map((client) {
+            return DropdownMenuItem<int?>(
+              value: client.id,
+              child: Text(client.nomComplet),
+            );
+          }),
+        ],
         onChanged: _saving
             ? null
             : (value) {
@@ -359,13 +354,6 @@ class _UserFormPageState extends State<UserFormPage> {
                   _selectedClientId = value;
                 });
               },
-        validator: (value) {
-          if (_selectedRoleId == _roleClientId && value == null) {
-            return 'Sélectionnez le client associé à ce compte.';
-          }
-
-          return null;
-        },
       ),
     );
   }
