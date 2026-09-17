@@ -167,13 +167,62 @@ def list_documents_all(
     response_model=DocumentResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create(
+async def create(
     dossier_id: int,
-    data: DocumentCreate,
+    fichier: UploadFile = File(...),
+    type_document: str = Form(default="Administratif"),
+    description: str | None = Form(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     _ensure_dossier_document_access(db, current_user, dossier_id)
+
+    if not fichier.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nom de fichier invalide.",
+        )
+
+    extension = Path(fichier.filename).suffix.lower()
+
+    if extension not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Type de fichier non autorisé. "
+                "Formats acceptés : PDF, JPG, JPEG, PNG, WEBP, "
+                "DOC, DOCX, XLS et XLSX."
+            ),
+        )
+
+    content = await fichier.read()
+
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Le fichier ne doit pas dépasser 10 Mo.",
+        )
+
+    if len(content) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Le fichier est vide.",
+        )
+
+    chemin_fichier = file_storage.save_file(
+        folder=f"dossiers/{dossier_id}",
+        filename=fichier.filename,
+        content=content,
+        content_type=fichier.content_type,
+    )
+
+    data = DocumentCreate(
+        nom=fichier.filename,
+        type_document=type_document,
+        description=description,
+        chemin_fichier=chemin_fichier,
+        statut="Actif",
+    )
 
     return create_document(db, dossier_id, data)
 
