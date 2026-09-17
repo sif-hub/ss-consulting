@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../models/client.dart';
 import '../../models/utilisateur.dart';
+import '../clients/client_service.dart';
 import 'user_service.dart';
+
+const int _roleClientId = 6;
 
 class UserFormPage extends StatefulWidget {
   final Utilisateur? user;
@@ -20,6 +24,7 @@ class UserFormPage extends StatefulWidget {
 class _UserFormPageState extends State<UserFormPage> {
   final _formKey = GlobalKey<FormState>();
   final UserService _userService = UserService();
+  final ClientService _clientService = ClientService();
 
   final _nomController = TextEditingController();
   final _prenomController = TextEditingController();
@@ -29,6 +34,9 @@ class _UserFormPageState extends State<UserFormPage> {
 
   List<Map<String, dynamic>> _roles = [];
   int? _selectedRoleId;
+
+  List<Client> _clients = [];
+  int? _selectedClientId;
 
   bool _loading = true;
   bool _saving = false;
@@ -53,11 +61,13 @@ class _UserFormPageState extends State<UserFormPage> {
   Future<void> _initialize() async {
     try {
       final roles = await _userService.getRoles();
+      final clients = await _clientService.getClients();
 
       if (!mounted) return;
 
       setState(() {
         _roles = roles;
+        _clients = clients;
 
         if (widget.user != null) {
           _nomController.text = widget.user!.nom;
@@ -65,6 +75,7 @@ class _UserFormPageState extends State<UserFormPage> {
           _emailController.text = widget.user!.email;
           _telephoneController.text = widget.user!.telephone ?? '';
           _selectedRoleId = widget.user!.roleId;
+          _selectedClientId = widget.user!.clientId;
         }
 
         _loading = false;
@@ -100,11 +111,26 @@ class _UserFormPageState extends State<UserFormPage> {
       return;
     }
 
+    if (_selectedRoleId == _roleClientId && _selectedClientId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Un compte de rôle Client doit être associé à un client '
+            'existant : sélectionnez-le ci-dessous.',
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _saving = true;
     });
 
     try {
+      final clientId =
+          _selectedRoleId == _roleClientId ? _selectedClientId : null;
+
       if (widget.isEditing) {
         await _userService.updateUser(
           userId: widget.user!.id,
@@ -115,6 +141,7 @@ class _UserFormPageState extends State<UserFormPage> {
               ? null
               : _telephoneController.text.trim(),
           roleId: _selectedRoleId!,
+          clientId: clientId,
         );
       } else {
         await _userService.createUser(
@@ -126,6 +153,7 @@ class _UserFormPageState extends State<UserFormPage> {
               : _telephoneController.text.trim(),
           motDePasse: _passwordController.text,
           roleId: _selectedRoleId!,
+          clientId: clientId,
         );
       }
 
@@ -302,6 +330,46 @@ class _UserFormPageState extends State<UserFormPage> {
     );
   }
 
+  Widget _buildClientField() {
+    if (_selectedRoleId != _roleClientId) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: DropdownButtonFormField<int>(
+        initialValue: _selectedClientId,
+        decoration: const InputDecoration(
+          labelText: 'Client associé',
+          helperText:
+              'Ce compte ne pourra voir que les données de ce client.',
+          prefixIcon: Icon(Icons.business_outlined),
+          border: OutlineInputBorder(),
+        ),
+        items: _clients.map((client) {
+          return DropdownMenuItem<int>(
+            value: client.id,
+            child: Text(client.nomComplet),
+          );
+        }).toList(),
+        onChanged: _saving
+            ? null
+            : (value) {
+                setState(() {
+                  _selectedClientId = value;
+                });
+              },
+        validator: (value) {
+          if (_selectedRoleId == _roleClientId && value == null) {
+            return 'Sélectionnez le client associé à ce compte.';
+          }
+
+          return null;
+        },
+      ),
+    );
+  }
+
   Widget _buildForm() {
     return Form(
       key: _formKey,
@@ -334,6 +402,7 @@ class _UserFormPageState extends State<UserFormPage> {
             keyboardType: TextInputType.phone,
           ),
           _buildRoleField(),
+          _buildClientField(),
           _buildPasswordField(),
           const SizedBox(height: 8),
           FilledButton.icon(

@@ -14,6 +14,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     telephone: str | None
     role_id: int
+    client_id: int | None = None
     actif: bool
     date_creation: datetime
     derniere_connexion: datetime | None

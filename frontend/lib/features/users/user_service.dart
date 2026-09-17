@@ -62,6 +62,7 @@ class UserService {
     String? telephone,
     required String motDePasse,
     required int roleId,
+    int? clientId,
   }) async {
     try {
       final response = await _apiClient.dio.post(
@@ -73,6 +74,7 @@ class UserService {
           'telephone': telephone,
           'mot_de_passe': motDePasse,
           'role_id': roleId,
+          'client_id': clientId,
         },
       );
 
@@ -99,6 +101,7 @@ class UserService {
     required String email,
     String? telephone,
     required int roleId,
+    int? clientId,
   }) async {
     try {
       final response = await _apiClient.dio.put(
@@ -109,6 +112,7 @@ class UserService {
           'email': email,
           'telephone': telephone,
           'role_id': roleId,
+          'client_id': clientId,
         },
       );
 
