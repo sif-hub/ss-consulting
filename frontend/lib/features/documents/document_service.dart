@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/auth/token_storage.dart';
@@ -51,16 +52,25 @@ class DocumentService {
         .toList();
   }
 
-  Future<Document> createDocument(
-    int dossierId,
-    Map<String, dynamic> data,
-  ) async {
+  Future<Document> createDocument({
+    required int dossierId,
+    required PlatformFile file,
+    required String typeDocument,
+    String? description,
+  }) async {
+    final bytes = await file.readAsBytes();
+
+    final formData = FormData.fromMap({
+      'fichier': MultipartFile.fromBytes(bytes, filename: file.name),
+      'type_document': typeDocument,
+      if (description != null && description.trim().isNotEmpty)
+        'description': description.trim(),
+    });
+
     final Response response = await _apiClient.dio.post(
       '/dossiers/$dossierId/documents',
-      data: {
-        ...data,
-        'dossier_id': dossierId,
-      },
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
     );
 
     return Document.fromJson(
