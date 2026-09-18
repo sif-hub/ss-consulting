@@ -5,6 +5,8 @@ import '../../models/client.dart';
 import '../clients/client_service.dart';
 import 'declaration_service.dart';
 import 'admin_declaration_detail_page.dart';
+import 'declaration_form_page.dart';
+import '../../core/auth/auth_service.dart';
 
 class AdminDeclarationsPage extends StatefulWidget {
   const AdminDeclarationsPage({super.key});
@@ -18,13 +20,14 @@ class _AdminDeclarationsPageState
     extends State<AdminDeclarationsPage> {
   final DeclarationService _service = DeclarationService();
   final ClientService _clientService = ClientService();
-
+  final AuthService _authService = AuthService();
 
   List<Declaration> _declarations = [];
   Map<int, Client> _clients = {};
 
   bool _loading = true;
   String? _error;
+  bool _canCreate = false;
 
   String _selectedStatus = 'TOUS';
 
@@ -42,6 +45,21 @@ class _AdminDeclarationsPageState
   void initState() {
     super.initState();
     _loadDeclarations();
+    _checkCreatePermission();
+  }
+
+  Future<void> _checkCreatePermission() async {
+    try {
+      final user = await _authService.getCurrentUser();
+
+      if (!mounted) return;
+
+      setState(() {
+        _canCreate = user.roleId == 1;
+      });
+    } catch (_) {
+      // Silencieux : le bouton reste simplement caché.
+    }
   }
 
   Future<void> _loadDeclarations() async {
@@ -462,6 +480,25 @@ class _AdminDeclarationsPageState
           ),
         ],
       ),
+
+      floatingActionButton: !_canCreate
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () async {
+                final created = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DeclarationFormPage(),
+                  ),
+                );
+
+                if (created == true) {
+                  _loadDeclarations();
+                }
+              },
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Nouvelle déclaration'),
+            ),
 
       body: Column(
         children: [

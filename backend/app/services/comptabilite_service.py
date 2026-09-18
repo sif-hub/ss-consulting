@@ -1124,42 +1124,54 @@ def balance_comptable(
     Génère la balance comptable de l'exercice, pour le périmètre
     demandé (cabinet si client_id est None, sinon ce client).
 
-    Seules les écritures validées sont prises en compte.
+    Seules les écritures validées sont prises en compte. Tous les
+    comptes actifs du périmètre apparaissent, y compris ceux sans
+    aucune écriture (soldes à 0) — la balance est censée lister
+    l'intégralité du plan comptable, pas seulement les comptes
+    mouvementés.
     """
+
+    lignes_validees = (
+        db.query(
+            LigneEcriture.compte_id.label("compte_id"),
+            LigneEcriture.debit.label("debit"),
+            LigneEcriture.credit.label("credit"),
+        )
+        .join(
+            EcritureComptable,
+            EcritureComptable.id == LigneEcriture.ecriture_id,
+        )
+        .join(
+            PeriodeComptable,
+            PeriodeComptable.id == EcritureComptable.periode_id,
+        )
+        .filter(
+            EcritureComptable.statut == "VALIDE",
+            PeriodeComptable.exercice == exercice,
+            PeriodeComptable.client_id == client_id,
+        )
+        .subquery()
+    )
 
     resultats = (
         db.query(
             CompteComptable,
             func.coalesce(
-                func.sum(LigneEcriture.debit),
+                func.sum(lignes_validees.c.debit),
                 0,
             ).label("total_debit"),
             func.coalesce(
-                func.sum(LigneEcriture.credit),
+                func.sum(lignes_validees.c.credit),
                 0,
             ).label("total_credit"),
         )
-        .join(
-            LigneEcriture,
-            LigneEcriture.compte_id
-            == CompteComptable.id,
-        )
-        .join(
-            EcritureComptable,
-            EcritureComptable.id
-            == LigneEcriture.ecriture_id,
-        )
-        .join(
-            PeriodeComptable,
-            PeriodeComptable.id
-            == EcritureComptable.periode_id,
+        .outerjoin(
+            lignes_validees,
+            lignes_validees.c.compte_id == CompteComptable.id,
         )
         .filter(
             CompteComptable.actif.is_(True),
             CompteComptable.client_id == client_id,
-            PeriodeComptable.exercice == exercice,
-            PeriodeComptable.client_id == client_id,
-            EcritureComptable.statut == "VALIDE",
         )
         .group_by(
             CompteComptable.id,

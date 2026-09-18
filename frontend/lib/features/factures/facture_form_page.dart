@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../models/client.dart';
 import '../../models/facture.dart';
+import '../clients/client_service.dart';
 import 'facture_service.dart';
 
 class FactureFormPage extends StatefulWidget {
@@ -23,7 +25,14 @@ class FactureFormPage extends StatefulWidget {
 
 class _FactureFormPageState extends State<FactureFormPage> {
   final FactureService _service = FactureService();
+  final ClientService _clientService = ClientService();
   final _formKey = GlobalKey<FormState>();
+
+  List<Client> _clients = [];
+  bool _loadingClients = false;
+
+  bool get _needsClientPicker =>
+      !widget.isEditing && widget.clientId == null;
 
   late final TextEditingController _numeroController;
   late final TextEditingController _montantHtController;
@@ -90,6 +99,37 @@ class _FactureFormPageState extends State<FactureFormPage> {
       _modePaiement = facture.modePaiement;
       _dateEmission = facture.dateEmission;
       _dateEcheance = facture.dateEcheance;
+    }
+
+    if (_needsClientPicker) {
+      _loadClients();
+    }
+  }
+
+  Future<void> _loadClients() async {
+    setState(() {
+      _loadingClients = true;
+    });
+
+    try {
+      final clients = await _clientService.getClients();
+
+      if (!mounted) return;
+
+      setState(() {
+        _clients = clients;
+        _loadingClients = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _loadingClients = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du chargement des clients : $e')),
+      );
     }
   }
 
@@ -230,6 +270,40 @@ class _FactureFormPageState extends State<FactureFormPage> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            if (_needsClientPicker) ...[
+              DropdownButtonFormField<int>(
+                initialValue: _clientId,
+                decoration: InputDecoration(
+                  labelText: 'Client',
+                  prefixIcon: const Icon(Icons.business_outlined),
+                  border: const OutlineInputBorder(),
+                  helperText: _loadingClients
+                      ? 'Chargement des clients...'
+                      : null,
+                ),
+                items: _clients.map((client) {
+                  return DropdownMenuItem(
+                    value: client.id,
+                    child: Text(client.nomComplet),
+                  );
+                }).toList(),
+                onChanged: _loadingClients
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _clientId = value;
+                        });
+                      },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Sélectionnez le client de cette facture';
+                  }
+
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
             _field(
               controller: _numeroController,
               label: 'Numéro de facture',

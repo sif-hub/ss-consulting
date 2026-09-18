@@ -98,9 +98,9 @@ Navigator.of(context).pushReplacement(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(
-                      Icons.business,
-                      size: 70,
+                    const Image(
+                      image: AssetImage('assets/images/logo.png'),
+                      height: 90,
                     ),
 
                     const SizedBox(height: 24),

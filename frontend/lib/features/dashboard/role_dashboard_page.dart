@@ -209,6 +209,12 @@ class RoleDashboardPage extends StatelessWidget {
             route: '/paiements',
           ),
           _DashboardAction(
+            title: 'Déclarations',
+            subtitle: 'Consulter les déclarations et générer les DSF',
+            icon: Icons.assignment_rounded,
+            route: '/admin-declarations',
+          ),
+          _DashboardAction(
             title: 'Clients',
             subtitle: 'Consulter les clients',
             icon: Icons.people_alt_rounded,

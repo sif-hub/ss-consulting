@@ -3,10 +3,18 @@ import 'package:flutter/material.dart';
 
 import 'declaration_service.dart';
 import '../../core/auth/auth_service.dart';
+import '../../models/client.dart';
+import '../clients/client_service.dart';
 import '../ia/ai_service.dart';
 
 class DeclarationFormPage extends StatefulWidget {
-  const DeclarationFormPage({super.key});
+  /// Pré-sélectionne le client (utilisé quand un admin/comptable ouvre
+  /// ce formulaire depuis la fiche d'un client précis). Si absent et
+  /// que l'utilisateur n'est pas un compte Client, un sélecteur de
+  /// client s'affiche dans le formulaire.
+  final int? clientId;
+
+  const DeclarationFormPage({super.key, this.clientId});
 
   @override
   State<DeclarationFormPage> createState() => _DeclarationFormPageState();
@@ -16,6 +24,7 @@ class _DeclarationFormPageState extends State<DeclarationFormPage> {
   final _formKey = GlobalKey<FormState>();
   final DeclarationService _service = DeclarationService();
   final AuthService _authService = AuthService();
+  final ClientService _clientService = ClientService();
   final AiService _aiService = AiService();
   bool _suggestingObservations = false;
 
@@ -28,8 +37,51 @@ class _DeclarationFormPageState extends State<DeclarationFormPage> {
   int _mois = DateTime.now().month;
   int _annee = DateTime.now().year;
   bool _loading = false;
+  bool _initializing = true;
+
+  bool _isClientAccount = true;
+  List<Client> _clients = [];
+  int? _selectedClientId;
 
   final List<PlatformFile> _selectedFiles = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      final user = await _authService.getCurrentUser();
+      final isClientAccount = user.roleId == 6;
+
+      List<Client> clients = [];
+
+      if (!isClientAccount) {
+        clients = await _clientService.getClients();
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _isClientAccount = isClientAccount;
+        _clients = clients;
+        _selectedClientId = widget.clientId ?? user.clientId;
+        _initializing = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _initializing = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du chargement : $e')),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -150,21 +202,23 @@ class _DeclarationFormPageState extends State<DeclarationFormPage> {
       return;
     }
 
-    final user = await _authService.getCurrentUser();
-
-    if (user.clientId == null) {
+    if (_selectedClientId == null) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Votre compte n’est associé à aucun client.'),
+        SnackBar(
+          content: Text(
+            _isClientAccount
+                ? 'Votre compte n’est associé à aucun client.'
+                : 'Sélectionnez le client concerné par cette déclaration.',
+          ),
         ),
       );
 
       return;
     }
 
-    final clientId = user.clientId!;
+    final clientId = _selectedClientId!;
 
     setState(() {
       _loading = true;
@@ -218,11 +272,41 @@ class _DeclarationFormPageState extends State<DeclarationFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Nouvelle déclaration')),
-      body: Form(
+      body: _initializing
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            if (!_isClientAccount) ...[
+              DropdownButtonFormField<int>(
+                initialValue: _selectedClientId,
+                decoration: const InputDecoration(
+                  labelText: 'Client',
+                  border: OutlineInputBorder(),
+                ),
+                items: _clients.map((client) {
+                  return DropdownMenuItem(
+                    value: client.id,
+                    child: Text(client.nomComplet),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedClientId = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Sélectionnez un client';
+                  }
+
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
             DropdownButtonFormField<int>(
               initialValue: _mois,
               decoration: const InputDecoration(
