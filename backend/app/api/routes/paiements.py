@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status, Query
 from datetime import datetime
 from uuid import uuid4
@@ -411,8 +413,10 @@ async def initier_paiement_fapshi(
     # REFERENCE UNIQUE
     # --------------------------------------------------------
 
+    numero_clean = re.sub(r"[^A-Za-z0-9]+", "", facture.numero)
+
     reference = (
-        f"SS-{facture.numero}-"
+        f"SS-{numero_clean}-"
         f"{uuid4().hex[:12].upper()}"
     )
 
