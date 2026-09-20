@@ -61,10 +61,7 @@ def list_declarations(
 ):
     if current_user.role_id == 6:
         if current_user.client_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Votre compte Client n'est associé à aucun client.",
-            )
+            return []
         client_id = current_user.client_id
 
     return get_declarations(
