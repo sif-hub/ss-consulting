@@ -1,4 +1,4 @@
-package com.sifa.sinn.the_system
+package com.ssconsulting.app
 
 import io.flutter.embedding.android.FlutterActivity
 

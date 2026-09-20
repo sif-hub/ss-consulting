@@ -19,7 +19,7 @@ def normalize_decimal(value):
 
 
 class DeclarationCreate(BaseModel):
-    client_id: int
+    client_id: int | None = None
     mois: int = Field(ge=1, le=12)
     annee: int = Field(ge=2000, le=2100)
 

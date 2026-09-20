@@ -51,7 +51,7 @@ class DeclarationService {
   }
 
   Future<Declaration> createDeclaration({
-    required int clientId,
+    int? clientId,
     required int mois,
     required int annee,
     double chiffreAffaires = 0,
@@ -63,7 +63,7 @@ class DeclarationService {
     final response = await _dio.post(
       '/declarations',
       data: {
-        'client_id': clientId,
+        if (clientId != null) 'client_id': clientId,
         'mois': mois,
         'annee': annee,
         'chiffre_affaires': chiffreAffaires,

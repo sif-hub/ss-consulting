@@ -10,6 +10,7 @@ from app.schemas.declaration import (
     DeclarationReview,
     DeclarationUpdate,
 )
+from app.services.client_service import ensure_client_for_user
 from app.services.declaration_service import (
     create_declaration,
     get_declaration,
@@ -114,15 +115,20 @@ def create_new_declaration(
         require_roles(1, 6)
     ),
 ):
-    if current_user.role_id == 6 and current_user.client_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Votre compte Client n'est associé à aucun client.",
-        )
+    if current_user.role_id == 6:
+        client_id = ensure_client_for_user(db, current_user)
+    else:
+        client_id = data.client_id
+
+        if client_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Sélectionnez le client concerné par cette déclaration.",
+            )
 
     return create_declaration(
         db=db,
-        client_id=current_user.client_id if current_user.role_id == 6 else data.client_id,
+        client_id=client_id,
         mois=data.mois,
         annee=data.annee,
         chiffre_affaires=data.chiffre_affaires,

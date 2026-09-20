@@ -245,3 +245,29 @@ def get_client_situation(
             for tache in taches
         ],
     }
+
+
+def ensure_client_for_user(db: Session, user) -> int:
+    """Crée et lie la fiche client d'un compte Client qui gère son propre dossier."""
+    if user.client_id is not None:
+        return user.client_id
+
+    email_libre = (
+        db.query(Client).filter(Client.email == user.email).first() is None
+    )
+
+    client = Client(
+        nom=user.nom,
+        prenom=user.prenom,
+        email=user.email if email_libre else None,
+        telephone=user.telephone or "Non renseigné",
+        type_client="Particulier",
+    )
+    db.add(client)
+    db.flush()
+
+    user.client_id = client.id
+    db.commit()
+    db.refresh(user)
+
+    return client.id

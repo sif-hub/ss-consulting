@@ -202,15 +202,13 @@ class _DeclarationFormPageState extends State<DeclarationFormPage> {
       return;
     }
 
-    if (_selectedClientId == null) {
+    if (!_isClientAccount && _selectedClientId == null) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text(
-            _isClientAccount
-                ? 'Votre compte n’est associé à aucun client.'
-                : 'Sélectionnez le client concerné par cette déclaration.',
+            'Sélectionnez le client concerné par cette déclaration.',
           ),
         ),
       );
@@ -218,15 +216,13 @@ class _DeclarationFormPageState extends State<DeclarationFormPage> {
       return;
     }
 
-    final clientId = _selectedClientId!;
-
     setState(() {
       _loading = true;
     });
 
     try {
       final declaration = await _service.createDeclaration(
-        clientId: clientId,
+        clientId: _isClientAccount ? null : _selectedClientId,
         mois: _mois,
         annee: _annee,
         chiffreAffaires: _parseDouble(_caController.text),
