@@ -112,6 +112,11 @@ class AiService {
 
     if (detail is String) return detail;
 
+    if (e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.connectionTimeout) {
+      return 'L\'assistant IA met trop de temps à répondre. Réessayez.';
+    }
+
     return 'Impossible de contacter l\'assistant IA.';
   }
 }
