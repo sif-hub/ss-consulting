@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 import '../../models/dossier.dart';
 import '../../models/utilisateur.dart';
@@ -174,24 +175,24 @@ class _DossiersPageState extends State<DossiersPage> {
   Color _statusColor(String status) {
     switch (status) {
       case 'Terminé':
-        return Colors.green;
+        return AppColors.success;
       case 'En attente':
-        return Colors.orange;
+        return AppColors.warning;
       case 'Annulé':
-        return Colors.red;
+        return AppColors.danger;
       default:
-        return Colors.blue;
+        return AppColors.info;
     }
   }
 
   Color _priorityColor(String priority) {
     switch (priority) {
       case 'Urgente':
-        return Colors.red;
+        return AppColors.priorityUrgent;
       case 'Haute':
-        return Colors.orange;
+        return AppColors.priorityHigh;
       case 'Basse':
-        return Colors.green;
+        return AppColors.priorityLow;
       default:
         return Colors.blue;
     }

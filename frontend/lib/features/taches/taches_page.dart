@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 import '../../models/tache.dart';
 import 'tache_form_page.dart';
@@ -174,24 +175,24 @@ class _TachesPageState extends State<TachesPage> {
   Color _statusColor(String statut) {
     switch (statut) {
       case 'Terminée':
-        return Colors.green;
+        return AppColors.success;
       case 'En cours':
-        return Colors.blue;
+        return AppColors.info;
       case 'Annulée':
-        return Colors.red;
+        return AppColors.danger;
       default:
-        return Colors.orange;
+        return AppColors.warning;
     }
   }
 
   Color _priorityColor(String priorite) {
     switch (priorite) {
       case 'Urgente':
-        return Colors.red;
+        return AppColors.priorityUrgent;
       case 'Haute':
-        return Colors.deepOrange;
+        return AppColors.priorityHighAlt;
       case 'Basse':
-        return Colors.green;
+        return AppColors.priorityLow;
       default:
         return Colors.blueGrey;
     }

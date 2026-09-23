@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 import '../../core/pdf/facture_pdf_service.dart';
 import '../../models/facture.dart';
@@ -204,15 +205,15 @@ class _FacturesPageState extends State<FacturesPage> {
   Color _statusColor(String statut) {
     switch (statut) {
       case 'Payée':
-        return Colors.green;
+        return AppColors.success;
       case 'Impayée':
-        return Colors.red;
+        return AppColors.danger;
       case 'En attente':
-        return Colors.orange;
+        return AppColors.warning;
       case 'Annulée':
-        return Colors.grey;
+        return AppColors.neutral;
       default:
-        return Colors.blue;
+        return AppColors.info;
     }
   }
 

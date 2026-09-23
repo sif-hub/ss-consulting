@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 import '../../models/paiement.dart';
 import 'paiement_service.dart';
@@ -144,15 +145,15 @@ class _PaiementsPageState extends State<PaiementsPage> {
   Color _statusColor(String status) {
     switch (status) {
       case 'Validé':
-        return Colors.green;
+        return AppColors.success;
       case 'En attente':
-        return Colors.orange;
+        return AppColors.warning;
       case 'Annulé':
-        return Colors.grey;
+        return AppColors.neutral;
       case 'Échoué':
-        return Colors.red;
+        return AppColors.danger;
       default:
-        return Colors.blue;
+        return AppColors.info;
     }
   }
 

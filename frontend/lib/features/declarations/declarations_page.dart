@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 import '../../core/auth/auth_service.dart';
 import '../../models/declaration.dart';
@@ -86,23 +87,23 @@ class _DeclarationsPageState extends State<DeclarationsPage> {
   Color _statusColor(String statut) {
     switch (statut) {
       case 'VALIDEE':
-        return Colors.green;
+        return AppColors.success;
 
       case 'REJETEE':
-        return Colors.red;
+        return AppColors.danger;
 
       case 'A_CORRIGER':
-        return Colors.orange;
+        return AppColors.warning;
 
       case 'EN_VERIFICATION':
-        return Colors.blue;
+        return AppColors.info;
 
       case 'SOUMISE':
-        return Colors.indigo;
+        return AppColors.pending;
 
       case 'BROUILLON':
       default:
-        return Colors.grey;
+        return AppColors.neutral;
     }
   }
 

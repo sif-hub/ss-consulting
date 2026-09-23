@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 
 import '../../models/declaration.dart';
 import '../../models/client.dart';
@@ -115,22 +116,22 @@ class _AdminDeclarationsPageState
   Color _statusColor(String status) {
     switch (status) {
       case 'VALIDEE':
-        return Colors.green;
+        return AppColors.success;
 
       case 'REJETEE':
-        return Colors.red;
+        return AppColors.danger;
 
       case 'A_CORRIGER':
-        return Colors.orange;
+        return AppColors.warning;
 
       case 'EN_VERIFICATION':
-        return Colors.blue;
+        return AppColors.info;
 
       case 'SOUMISE':
-        return Colors.indigo;
+        return AppColors.pending;
 
       default:
-        return Colors.grey;
+        return AppColors.neutral;
     }
   }
 
