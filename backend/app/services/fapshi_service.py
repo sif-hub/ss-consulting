@@ -101,14 +101,18 @@ class FapshiService:
         message: str | None = None,
     ) -> dict:
         """Demande de paiement directe : le client confirme sur son téléphone,
-        sans redirection vers une page Fapshi."""
+        sans redirection vers une page Fapshi.
+
+        Le canal (`medium`) est volontairement omis : Fapshi détecte
+        lui-même MTN ou Orange d'après le numéro. Forcer "mobile money"
+        rejette tous les numéros Orange ("Invalid MTN phone number").
+        """
 
         self._check_configuration()
 
         payload = {
             "amount": int(round(amount)),
             "phone": phone,
-            "medium": "mobile money",
             "externalId": external_id,
         }
 
