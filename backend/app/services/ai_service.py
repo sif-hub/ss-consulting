@@ -123,7 +123,7 @@ def chat(
     ]
 
     try:
-        response = _generate(client, 
+        response = _generate(client,
             model=settings.GEMINI_MODEL,
             contents=contents,
             config=types.GenerateContentConfig(
@@ -134,6 +134,47 @@ def chat(
         raise _handle_error(exc)
 
     return (response.text or "").strip()
+
+
+def chat_stream(messages: list[dict], role_label: str):
+    """
+    Même chose que `chat`, mais renvoie les morceaux de la réponse au
+    fur et à mesure qu'ils arrivent, pour un affichage progressif côté
+    app plutôt qu'une attente silencieuse suivie du texte complet.
+
+    Une fois le flux commencé, la réponse HTTP est déjà à 200 : toute
+    erreur est donc renvoyée comme texte (elle s'affiche telle quelle
+    dans la bulle de l'assistant) plutôt que comme exception HTTP.
+    """
+
+    try:
+        client = _get_client()
+
+        system = f"{SYSTEM_PROMPT_BASE}\nL'utilisateur actuel a le rôle : {role_label}."
+
+        contents = [
+            types.Content(
+                role="model" if message["role"] == "assistant" else "user",
+                parts=[types.Part.from_text(text=message["content"])],
+            )
+            for message in messages
+        ]
+
+        stream = client.models.generate_content_stream(
+            model=settings.GEMINI_MODEL,
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system,
+            ),
+        )
+
+        for chunk in stream:
+            if chunk.text:
+                yield chunk.text
+    except HTTPException as exc:
+        yield str(exc.detail)
+    except Exception as exc:
+        yield str(_handle_error(exc).detail)
 
 
 def suggerer_observations_declaration(declaration) -> str:

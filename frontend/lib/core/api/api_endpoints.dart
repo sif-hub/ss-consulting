@@ -63,6 +63,7 @@ class ApiEndpoints {
   // ============================================================
 
   static const String iaChat = '/ia/chat';
+  static const String iaChatStream = '/ia/chat/stream';
 
   static const String iaSuggestionDeclaration = '/ia/declarations/observations';
 

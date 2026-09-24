@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 
 import '../../core/api/api_client.dart';
@@ -56,6 +58,34 @@ class AiService {
       return Map<String, dynamic>.from(response.data as Map)['reponse']
               as String? ??
           '';
+    } on DioException catch (e) {
+      throw Exception(_errorMessage(e));
+    }
+  }
+
+  /// Comme [chat], mais renvoie les morceaux de la réponse au fur et à
+  /// mesure qu'ils arrivent, pour un affichage progressif dans le chat
+  /// au lieu d'une attente suivie du texte entier d'un coup.
+  Stream<String> chatStream(List<ChatMessage> messages) async* {
+    try {
+      final response = await _apiClient.dio.post(
+        ApiEndpoints.iaChatStream,
+        data: {'messages': messages.map((m) => m.toJson()).toList()},
+        options: Options(
+          responseType: ResponseType.stream,
+          receiveTimeout: const Duration(seconds: 60),
+        ),
+      );
+
+      final stream = (response.data as ResponseBody).stream;
+
+      // `.cast` puis `.transform(utf8.decoder)` (plutôt qu'un décodage
+      // manuel par morceau) pour ne pas casser un caractère accentué
+      // coupé entre deux paquets réseau.
+      await for (final chunk
+          in stream.cast<List<int>>().transform(utf8.decoder)) {
+        if (chunk.isNotEmpty) yield chunk;
+      }
     } on DioException catch (e) {
       throw Exception(_errorMessage(e));
     }

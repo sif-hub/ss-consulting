@@ -48,26 +48,42 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
 
     _scrollToBottom();
 
+    setState(() {
+      _messages.add(const ChatMessage(role: 'assistant', content: ''));
+    });
+
     try {
-      final reponse = await _service.chat(_messages);
+      var reponseAccumulee = '';
+
+      await for (final morceau in _service.chatStream(
+        _messages.sublist(0, _messages.length - 1),
+      )) {
+        reponseAccumulee += morceau;
+
+        if (!mounted) return;
+
+        setState(() {
+          _messages[_messages.length - 1] = ChatMessage(
+            role: 'assistant',
+            content: reponseAccumulee,
+          );
+        });
+
+        _scrollToBottom();
+      }
 
       if (!mounted) return;
 
       setState(() {
-        _messages.add(ChatMessage(role: 'assistant', content: reponse));
         _sending = false;
       });
-
-      _scrollToBottom();
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
-        _messages.add(
-          ChatMessage(
-            role: 'assistant',
-            content: e.toString().replaceFirst('Exception: ', ''),
-          ),
+        _messages[_messages.length - 1] = ChatMessage(
+          role: 'assistant',
+          content: e.toString().replaceFirst('Exception: ', ''),
         );
         _sending = false;
       });

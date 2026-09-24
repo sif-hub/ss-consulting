@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -58,6 +59,22 @@ def chat(
     )
 
     return ChatResponse(reponse=reponse)
+
+
+@router.post("/chat/stream")
+def chat_stream(
+    data: ChatRequest,
+    current_user: User = Depends(get_current_user),
+):
+    role_label = ROLE_LABELS.get(current_user.role_id, "Utilisateur")
+
+    return StreamingResponse(
+        ai_service.chat_stream(
+            [message.model_dump() for message in data.messages],
+            role_label,
+        ),
+        media_type="text/plain",
+    )
 
 
 # ============================================================
