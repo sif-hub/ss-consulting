@@ -9,9 +9,10 @@ from app.core.security import (
 from app.models.role import Role
 from app.models.user import User
 from app.schemas.auth import RegisterRequest
+from app.services.client_service import ensure_client_for_user
 
 
-DEFAULT_ROLE = "Secretaire"
+DEFAULT_ROLE = "Client"
 
 
 def register_user(
@@ -56,6 +57,9 @@ def register_user(
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    if role.nom == "Client":
+        ensure_client_for_user(db, user)
 
     return user
 
