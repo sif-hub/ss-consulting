@@ -91,6 +91,74 @@ class FapshiService:
 
         return response.json()
 
+    async def direct_pay(
+        self,
+        amount: float,
+        phone: str,
+        external_id: str,
+        name: str | None = None,
+        email: str | None = None,
+        message: str | None = None,
+    ) -> dict:
+        """Demande de paiement directe : le client confirme sur son téléphone,
+        sans redirection vers une page Fapshi."""
+
+        self._check_configuration()
+
+        payload = {
+            "amount": int(round(amount)),
+            "phone": phone,
+            "medium": "mobile money",
+            "externalId": external_id,
+        }
+
+        if name:
+            payload["name"] = name
+
+        if email:
+            payload["email"] = email
+
+        if message:
+            payload["message"] = message
+
+        url = f"{self.base_url}/direct-pay"
+
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    url,
+                    json=payload,
+                    headers=self._headers(),
+                )
+
+        except httpx.RequestError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Impossible de contacter Fapshi : {exc}",
+            )
+
+        if response.status_code >= 400:
+            try:
+                error_data = response.json()
+            except Exception:
+                error_data = {}
+
+            fapshi_message = (
+                error_data.get("message")
+                if isinstance(error_data, dict)
+                else None
+            )
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    fapshi_message
+                    or "Fapshi a refusé la demande de paiement."
+                ),
+            )
+
+        return response.json()
+
     async def get_payment_status(self, trans_id: str) -> dict:
         self._check_configuration()
 

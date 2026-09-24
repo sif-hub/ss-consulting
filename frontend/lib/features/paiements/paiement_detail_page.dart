@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 
 import '../../models/facture.dart';
 import '../../models/paiement.dart';
+import 'fapshi_direct_dialog.dart';
 import 'paiement_service.dart';
 
 class PaiementDetailPage extends StatefulWidget {
@@ -123,149 +123,26 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
       return;
     }
 
-    final montantController = TextEditingController(
-      text: _resteAPayer.toStringAsFixed(0),
-    );
-
-    final montant = await showDialog<double>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Paiement Fapshi'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Reste à payer : ${_formatMontant(_resteAPayer)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: montantController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: 'Montant du paiement',
-                  suffixText: 'FCFA',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Vous pouvez effectuer un paiement partiel.',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Annuler'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final value = double.tryParse(
-                  montantController.text
-                      .trim()
-                      .replaceAll(',', '.'),
-                );
-
-                if (value == null || value <= 0) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Veuillez saisir un montant valide.',
-                      ),
-                    ),
-                  );
-                  return;
-                }
-
-                if (value > _resteAPayer) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Le montant ne peut pas dépasser le reste à payer.',
-                      ),
-                    ),
-                  );
-                  return;
-                }
-
-                Navigator.pop(dialogContext, value);
-              },
-              child: const Text('Continuer'),
-            ),
-          ],
-        );
-      },
-    );
-
-    montantController.dispose();
-
-    if (montant == null || !mounted) return;
-
     setState(() {
       _isPaying = true;
     });
 
-    try {
-      final result = await _service.initierPaiementFapshi(
-        factureId: widget.facture.id,
-        montant: montant,
-      );
+    final paye = await showFapshiDirectDialog(
+      context,
+      factureId: widget.facture.id,
+      resteAPayer: _resteAPayer,
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      final uri = Uri.tryParse(result.paymentLink);
+    setState(() {
+      _isPaying = false;
+    });
 
-      if (uri == null ||
-          !(uri.scheme == 'http' || uri.scheme == 'https')) {
-        throw Exception(
-          'Lien de paiement Fapshi invalide.',
-        );
-      }
+    await _loadPaiements();
 
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!launched) {
-        throw Exception(
-          'Impossible d’ouvrir la page de paiement Fapshi.',
-        );
-      }
-
-      if (!mounted) return;
-
-      _showMessage(
-        'Paiement initialisé. Finalisez le paiement dans Fapshi, '
-        'puis revenez rafraîchir le statut.',
-        Colors.orange,
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      _showMessage(
-        'Erreur lors de l’initialisation du paiement : $e',
-        Colors.red,
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isPaying = false;
-        });
-      }
+    if (paye == true && mounted) {
+      _showMessage('Paiement confirmé !', Colors.green);
     }
   }
 
@@ -446,7 +323,7 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
               ? 'Initialisation...'
               : alreadyPaid
                   ? 'Facture entièrement payée'
-                  : 'Payer avec Fapshi',
+                  : 'Payer par Mobile Money',
         ),
         style: FilledButton.styleFrom(
           backgroundColor: const Color(0xFF10B981),

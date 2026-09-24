@@ -6,6 +6,20 @@ class FapshiInitRequest(BaseModel):
     montant: float = Field(gt=0)
 
 
+class FapshiDirectRequest(BaseModel):
+    facture_id: int = Field(gt=0)
+    montant: float = Field(gt=0)
+    telephone: str = Field(min_length=9, max_length=15)
+
+
+class FapshiDirectResponse(BaseModel):
+    paiement_id: int
+    facture_id: int
+    reference: str
+    montant: float
+    statut: str
+
+
 class FapshiInitResponse(BaseModel):
     paiement_id: int
     facture_id: int

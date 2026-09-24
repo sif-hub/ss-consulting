@@ -5,6 +5,8 @@ from datetime import datetime
 from uuid import uuid4
 
 from app.schemas.fapshi import (
+    FapshiDirectRequest,
+    FapshiDirectResponse,
     FapshiInitRequest,
     FapshiInitResponse,
     FapshiStatutResponse,
@@ -331,16 +333,14 @@ def confirmer_paiement_mobile(
 # FAPSHI
 # ============================================================
 
-@router.post(
-    "/fapshi/initier",
-    response_model=FapshiInitResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def initier_paiement_fapshi(
-    data: FapshiInitRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+def _preparer_paiement_fapshi(
+    db: Session,
+    current_user: User,
+    facture_id: int,
+    montant: float,
 ):
+    """Valide la facture et le montant, et fabrique la référence unique."""
+
     # --------------------------------------------------------
     # FACTURE
     # --------------------------------------------------------
@@ -348,7 +348,7 @@ async def initier_paiement_fapshi(
     facture = (
         db.query(Facture)
         .filter(
-            Facture.id == data.facture_id,
+            Facture.id == facture_id,
             Facture.actif.is_(True),
         )
         .first()
@@ -396,11 +396,11 @@ async def initier_paiement_fapshi(
             detail="Cette facture est déjà entièrement payée.",
         )
 
-    if data.montant > reste:
+    if montant > reste:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                f"Le montant demandé ({data.montant:.0f} FCFA) "
+                f"Le montant demandé ({montant:.0f} FCFA) "
                 f"dépasse le reste à payer "
                 f"({reste:.0f} FCFA)."
             ),
@@ -415,6 +415,26 @@ async def initier_paiement_fapshi(
     reference = (
         f"SS-{numero_clean}-"
         f"{uuid4().hex[:12].upper()}"
+    )
+
+    return facture, client, reference
+
+
+@router.post(
+    "/fapshi/initier",
+    response_model=FapshiInitResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def initier_paiement_fapshi(
+    data: FapshiInitRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    facture, client, reference = _preparer_paiement_fapshi(
+        db,
+        current_user,
+        data.facture_id,
+        data.montant,
     )
 
     # --------------------------------------------------------
@@ -487,6 +507,97 @@ async def initier_paiement_fapshi(
         montant=data.montant,
         statut=paiement.statut,
         payment_link=payment_link,
+    )
+
+
+@router.post(
+    "/fapshi/direct",
+    response_model=FapshiDirectResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def payer_direct_fapshi(
+    data: FapshiDirectRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Paiement sans quitter l'application : Fapshi envoie la demande de
+    confirmation directement sur le téléphone du client (MTN MoMo ou
+    Orange Money). L'app suit ensuite le statut via /fapshi/{id}/statut.
+    """
+
+    telephone = re.sub(r"[^0-9]", "", data.telephone)
+
+    if telephone.startswith("237") and len(telephone) == 12:
+        telephone = telephone[3:]
+
+    if len(telephone) != 9 or not telephone.startswith("6"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Numéro invalide : saisissez 9 chiffres (ex. 6XXXXXXXX).",
+        )
+
+    facture, client, reference = _preparer_paiement_fapshi(
+        db,
+        current_user,
+        data.facture_id,
+        data.montant,
+    )
+
+    fapshi_response = await fapshi_service.direct_pay(
+        amount=data.montant,
+        phone=telephone,
+        external_id=reference,
+        name=client.nom,
+        email=client.email,
+        message=f"Facture {facture.numero}",
+    )
+
+    trans_id = fapshi_response.get("transId")
+
+    if not trans_id:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Fapshi n'a pas renvoyé d'identifiant de transaction.",
+        )
+
+    taux_commission = 2.0
+
+    montant_commission, montant_total = calculate_commission(
+        data.montant,
+        taux_commission,
+    )
+
+    paiement = Paiement(
+        facture_id=facture.id,
+        montant=data.montant,
+        taux_commission=taux_commission,
+        montant_commission=montant_commission,
+        montant_total=montant_total,
+        mode_paiement="Fapshi",
+        operateur=None,
+        transaction_id=trans_id,
+        numero_client=telephone,
+        frais=0,
+        reference=reference,
+        date_paiement=datetime.utcnow(),
+        statut="En attente",
+        notes="Paiement direct via Fapshi (confirmation sur le téléphone).",
+        actif=True,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow(),
+    )
+
+    db.add(paiement)
+    db.commit()
+    db.refresh(paiement)
+
+    return FapshiDirectResponse(
+        paiement_id=paiement.id,
+        facture_id=facture.id,
+        reference=reference,
+        montant=data.montant,
+        statut=paiement.statut,
     )
 
 
