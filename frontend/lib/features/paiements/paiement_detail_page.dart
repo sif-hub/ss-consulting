@@ -327,7 +327,7 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
         ),
         style: FilledButton.styleFrom(
           backgroundColor: const Color(0xFF10B981),
-          disabledBackgroundColor: Colors.grey.shade300,
+          disabledBackgroundColor: context.borderColor,
           disabledForegroundColor: Colors.grey.shade600,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -423,7 +423,7 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -546,7 +546,7 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: Text(
           widget.facture.numero,
@@ -554,8 +554,8 @@ class _PaiementDetailPageState extends State<PaiementDetailPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF111827),
+        backgroundColor: context.surfaceColor,
+        foregroundColor: context.textPrimary,
         elevation: 0,
         actions: [
           IconButton(

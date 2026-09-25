@@ -4,6 +4,7 @@ import '../../core/auth/auth_service.dart';
 import '../../core/auth/role_router.dart';
 import '../../models/utilisateur.dart';
 import 'register_page.dart';
+import '../../core/theme/theme_mode_button.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -85,6 +86,12 @@ Navigator.of(context).pushReplacement(
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        actions: const [ThemeModeButton()],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

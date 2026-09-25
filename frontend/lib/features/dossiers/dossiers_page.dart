@@ -209,14 +209,14 @@ class _DossiersPageState extends State<DossiersPage> {
     final dossiers = _filteredDossiers;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text(
           'Dossiers',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
@@ -248,7 +248,7 @@ class _DossiersPageState extends State<DossiersPage> {
                       )
                     : null,
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: context.surfaceColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -337,7 +337,7 @@ class _DossiersPageState extends State<DossiersPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(

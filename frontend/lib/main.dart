@@ -20,7 +20,9 @@ import 'features/declarations/admin_declarations_page.dart';
 import 'features/users/users_page.dart';
 import 'features/comptabilite/comptabilite_page.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThemeController.load();
   runApp(const SSConsultingApp());
 }
 
@@ -29,97 +31,102 @@ class SSConsultingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'SS Consulting',
-      theme: AppTheme.light,
-      initialRoute: '/',
-      routes: {
-        // ============================================================
-        // AUTHENTIFICATION
-        // ============================================================
-        '/': (context) => const SplashPage(),
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.mode,
+      builder: (context, themeMode, _) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'SS Consulting',
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: themeMode,
+        initialRoute: '/',
+        routes: {
+          // ============================================================
+          // AUTHENTIFICATION
+          // ============================================================
+          '/': (context) => const SplashPage(),
+          '/login': (context) => const LoginPage(),
+          '/register': (context) => const RegisterPage(),
 
-        // Dashboard administrateur
-        '/dashboard': (context) => const DashboardPage(),
-        // Gestion des utilisateurs — administrateur
-        '/users': (context) => const UsersPage(),
-        '/comptabilite': (context) => const ComptabilitePage(),
+          // Dashboard administrateur
+          '/dashboard': (context) => const DashboardPage(),
+          // Gestion des utilisateurs — administrateur
+          '/users': (context) => const UsersPage(),
+          '/comptabilite': (context) => const ComptabilitePage(),
 
-        // ============================================================
-        // NOTIFICATIONS
-        // ============================================================
-        '/notifications': (context) => const NotificationsPage(),
+          // ============================================================
+          // NOTIFICATIONS
+          // ============================================================
+          '/notifications': (context) => const NotificationsPage(),
 
-        // ============================================================
-        // DECLARATIONS FISCALES
-        // ============================================================
-        '/declarations': (context) => const DeclarationsPage(),
+          // ============================================================
+          // DECLARATIONS FISCALES
+          // ============================================================
+          '/declarations': (context) => const DeclarationsPage(),
 
-        '/admin-declarations': (context) => const AdminDeclarationsPage(),
+          '/admin-declarations': (context) => const AdminDeclarationsPage(),
 
-        // ============================================================
-        // CLIENTS
-        // ============================================================
-        '/clients': (context) => const ClientsPage(),
+          // ============================================================
+          // CLIENTS
+          // ============================================================
+          '/clients': (context) => const ClientsPage(),
 
-        '/clients/create': (context) => const ClientFormPage(),
+          '/clients/create': (context) => const ClientFormPage(),
 
-        '/clients/detail': (context) => ClientDetailPage(
-          clientId: ModalRoute.of(context)!.settings.arguments as int,
-        ),
+          '/clients/detail': (context) => ClientDetailPage(
+            clientId: ModalRoute.of(context)!.settings.arguments as int,
+          ),
 
-        // ============================================================
-        // DOSSIERS
-        // ============================================================
-        '/dossiers': (context) => const DossiersPage(),
+          // ============================================================
+          // DOSSIERS
+          // ============================================================
+          '/dossiers': (context) => const DossiersPage(),
 
-        '/dossiers/create': (context) => DossierFormPage(
-          clientId: ModalRoute.of(context)?.settings.arguments as int?,
-        ),
+          '/dossiers/create': (context) => DossierFormPage(
+            clientId: ModalRoute.of(context)?.settings.arguments as int?,
+          ),
 
-        // ============================================================
-        // FACTURES
-        // ============================================================
-        '/factures': (context) => const FacturesPage(),
+          // ============================================================
+          // FACTURES
+          // ============================================================
+          '/factures': (context) => const FacturesPage(),
 
-        '/factures/create': (context) {
-          final arguments = ModalRoute.of(context)?.settings.arguments;
+          '/factures/create': (context) {
+            final arguments = ModalRoute.of(context)?.settings.arguments;
 
-          int? clientId;
-          int? dossierId;
+            int? clientId;
+            int? dossierId;
 
-          if (arguments is int) {
-            clientId = arguments;
-          } else if (arguments is Map) {
-            clientId = arguments['clientId'] as int?;
-            dossierId = arguments['dossierId'] as int?;
-          }
+            if (arguments is int) {
+              clientId = arguments;
+            } else if (arguments is Map) {
+              clientId = arguments['clientId'] as int?;
+              dossierId = arguments['dossierId'] as int?;
+            }
 
-          return FactureFormPage(clientId: clientId, dossierId: dossierId);
+            return FactureFormPage(clientId: clientId, dossierId: dossierId);
+          },
+
+          // ============================================================
+          // PAIEMENTS
+          // ============================================================
+          '/paiements': (context) => const PaiementsPage(),
+
+          '/paiements/create': (context) {
+            final arguments = ModalRoute.of(context)?.settings.arguments;
+
+            int? factureId;
+
+            if (arguments is int) {
+              factureId = arguments;
+            } else if (arguments is Map) {
+              factureId = arguments['factureId'] as int?;
+            }
+
+            return PaiementFormPage(factureId: factureId);
+          },
         },
-
-        // ============================================================
-        // PAIEMENTS
-        // ============================================================
-        '/paiements': (context) => const PaiementsPage(),
-
-        '/paiements/create': (context) {
-          final arguments = ModalRoute.of(context)?.settings.arguments;
-
-          int? factureId;
-
-          if (arguments is int) {
-            factureId = arguments;
-          } else if (arguments is Map) {
-            factureId = arguments['factureId'] as int?;
-          }
-
-          return PaiementFormPage(factureId: factureId);
-        },
-      },
+      ),
     );
   }
 }

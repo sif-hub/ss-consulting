@@ -12,6 +12,8 @@ import '../comptabilite/rapports_page.dart';
 import '../notifications/notification_service.dart';
 import '../../widgets/notification_badge.dart';
 import '../ia/assistant_chat_page.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/theme_mode_button.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -95,7 +97,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
 
       appBar: AppBar(
         elevation: 0,
@@ -106,14 +108,18 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             Icon(Icons.business_center_rounded),
             SizedBox(width: 10),
-            Text(
-              'SS Consulting',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Flexible(
+              child: Text(
+                'SS Consulting',
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
 
         actions: [
+          const ThemeModeButton(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Tooltip(
@@ -506,7 +512,7 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(17),
 
         boxShadow: [
@@ -582,7 +588,7 @@ class _DashboardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
         onTap: onTap,

@@ -49,3 +49,14 @@ class AppColors {
   static const Color priorityHighAlt = Colors.deepOrange;
   static const Color priorityLow = Colors.green;
 }
+
+/// Couleurs de surface qui suivent le thème clair/sombre. À utiliser à la
+/// place de `Colors.white`, `Color(0xFFF5F7FB)`, etc. pour tout fond,
+/// texte principal ou bordure.
+extension AppThemeContext on BuildContext {
+  Color get surfaceColor => Theme.of(this).colorScheme.surface;
+  Color get pageBackground => Theme.of(this).scaffoldBackgroundColor;
+  Color get textPrimary => Theme.of(this).colorScheme.onSurface;
+  Color get textMuted => Theme.of(this).colorScheme.onSurfaceVariant;
+  Color get borderColor => Theme.of(this).colorScheme.outlineVariant;
+}

@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import 'document_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class DocumentFormPage extends StatefulWidget {
   final int dossierId;
@@ -129,14 +130,14 @@ class _DocumentFormPageState extends State<DocumentFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text(
           'Nouveau document',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       body: ListView(
@@ -195,7 +196,7 @@ class _DocumentFormPageState extends State<DocumentFormPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
+                    color: context.pageBackground,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Row(
@@ -264,7 +265,7 @@ class _DocumentFormPageState extends State<DocumentFormPage> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -298,7 +299,7 @@ class _DocumentFormPageState extends State<DocumentFormPage> {
       labelText: label,
       prefixIcon: Icon(icon),
       filled: true,
-      fillColor: const Color(0xFFF8FAFC),
+      fillColor: context.pageBackground,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,

@@ -6,6 +6,7 @@ import '../../models/client.dart';
 import '../clients/client_service.dart';
 import 'balance_page.dart';
 import 'comptes_page.dart';
+import '../../core/theme/app_colors.dart';
 
 /// Point d'entrée de la comptabilité tenue par le cabinet pour le
 /// compte de ses clients — séparée de la comptabilité propre du
@@ -205,14 +206,14 @@ class _ComptabiliteClientsPageState extends State<ComptabiliteClientsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text(
           'Comptabilité des clients',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       body: _buildBody(),
@@ -272,7 +273,7 @@ class _ComptabiliteClientsPageState extends State<ComptabiliteClientsPage> {
               hintText: 'Rechercher un client...',
               prefixIcon: const Icon(Icons.search_rounded),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: context.surfaceColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
@@ -299,7 +300,7 @@ class _ComptabiliteClientsPageState extends State<ComptabiliteClientsPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/depense.dart';
 import 'depense_form_page.dart';
 import 'depense_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class DepensesPage extends StatefulWidget {
   const DepensesPage({super.key});
@@ -162,14 +163,14 @@ class _DepensesPageState extends State<DepensesPage> {
     final depenses = _filtered;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text(
           'Dépenses',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -190,7 +191,7 @@ class _DepensesPageState extends State<DepensesPage> {
                 hintText: 'Rechercher une dépense...',
                 prefixIcon: const Icon(Icons.search_rounded),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: context.surfaceColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none,
@@ -316,7 +317,7 @@ class _DepensesPageState extends State<DepensesPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),

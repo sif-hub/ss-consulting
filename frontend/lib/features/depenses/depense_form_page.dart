@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/depense.dart';
 import 'depense_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class DepenseFormPage extends StatefulWidget {
   final Depense? depense;
@@ -164,14 +165,14 @@ class _DepenseFormPageState extends State<DepenseFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: Text(
           widget.isEditing ? 'Modifier la dépense' : 'Nouvelle dépense',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       body: Form(

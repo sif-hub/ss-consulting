@@ -4,6 +4,7 @@ import '../../core/auth/auth_service.dart';
 import '../../core/auth/role_router.dart';
 import '../../core/auth/token_storage.dart';
 import 'login_page.dart';
+import '../../core/theme/app_colors.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -55,8 +56,8 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.white,
+    return Scaffold(
+      backgroundColor: context.surfaceColor,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

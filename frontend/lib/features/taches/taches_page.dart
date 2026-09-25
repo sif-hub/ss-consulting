@@ -203,15 +203,15 @@ class _TachesPageState extends State<TachesPage> {
     final filtered = _filteredTaches;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FC),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text(
           'Tâches',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: false,
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createTache,
@@ -280,7 +280,7 @@ class _TachesPageState extends State<TachesPage> {
                                 )
                               : null,
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: context.surfaceColor,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
                             borderSide: BorderSide.none,
@@ -368,7 +368,7 @@ class _TachesPageState extends State<TachesPage> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -401,7 +401,7 @@ class _TachesPageState extends State<TachesPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
@@ -538,7 +538,7 @@ class _TachesPageState extends State<TachesPage> {
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/tache.dart';
 import 'tache_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class TacheFormPage extends StatefulWidget {
   final int dossierId;
@@ -143,14 +144,14 @@ class _TacheFormPageState extends State<TacheFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FC),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: Text(
           widget.isEditing ? 'Modifier la tâche' : 'Nouvelle tâche',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
       ),
       body: Form(
         key: _formKey,
@@ -205,7 +206,7 @@ class _TacheFormPageState extends State<TacheFormPage> {
                   child: Icon(Icons.notes_rounded),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: context.surfaceColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -231,7 +232,7 @@ class _TacheFormPageState extends State<TacheFormPage> {
                         )
                       : null,
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: context.surfaceColor,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
@@ -288,7 +289,7 @@ class _TacheFormPageState extends State<TacheFormPage> {
         hintText: hint,
         prefixIcon: Icon(icon),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: context.surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -310,7 +311,7 @@ class _TacheFormPageState extends State<TacheFormPage> {
         labelText: label,
         prefixIcon: Icon(icon),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: context.surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,

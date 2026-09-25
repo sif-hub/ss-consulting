@@ -281,7 +281,7 @@ class _AdminDeclarationDetailPageState
   Widget _section({required String title, required Widget child}) {
     return Card(
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
@@ -553,7 +553,7 @@ class _AdminDeclarationDetailPageState
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: context.pageBackground,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -594,7 +594,7 @@ class _AdminDeclarationDetailPageState
         return Container(
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: context.pageBackground,
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
@@ -615,7 +615,7 @@ class _AdminDeclarationDetailPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text('Détail de la déclaration'),
         actions: [
@@ -647,7 +647,7 @@ class _AdminDeclarationDetailPageState
           children: [
             Card(
               elevation: 0,
-              color: Colors.white,
+              color: context.surfaceColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18),
               ),

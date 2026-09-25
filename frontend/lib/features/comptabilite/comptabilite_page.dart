@@ -7,6 +7,7 @@ import 'balance_page.dart';
 import 'comptabilite_clients_page.dart';
 import 'comptes_page.dart';
 import 'rapports_page.dart';
+import '../../core/theme/app_colors.dart';
 
 class ComptabilitePage extends StatefulWidget {
   const ComptabilitePage({super.key});
@@ -169,13 +170,13 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: Navigator.of(context).canPop()
           ? AppBar(
-              backgroundColor: const Color(0xFFF5F7FB),
-              surfaceTintColor: const Color(0xFFF5F7FB),
+              backgroundColor: context.pageBackground,
+              surfaceTintColor: context.pageBackground,
               elevation: 0,
-              foregroundColor: const Color(0xFF111827),
+              foregroundColor: context.textPrimary,
             )
           : null,
       body: RefreshIndicator(
@@ -403,7 +404,7 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(
           value: _annee,
-          dropdownColor: Colors.white,
+          dropdownColor: context.surfaceColor,
           iconEnabledColor: Colors.white,
           style: const TextStyle(
             color: Colors.white,
@@ -416,7 +417,7 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
               value: year,
               child: Text(
                 'Exercice $year',
-                style: const TextStyle(color: Color(0xFF111827)),
+                style: TextStyle(color: context.textPrimary),
               ),
             );
           }),
@@ -519,9 +520,9 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: context.borderColor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.025),
@@ -544,14 +545,14 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
                 child: Icon(icon, color: iconColor, size: 20),
               ),
               const Spacer(),
-              const Icon(Icons.more_horiz_rounded, color: Color(0xFF9CA3AF)),
+              Icon(Icons.more_horiz_rounded, color: context.textMuted),
             ],
           ),
           const Spacer(),
           Text(
             title,
-            style: const TextStyle(
-              color: Color(0xFF6B7280),
+            style: TextStyle(
+              color: context.textMuted,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -562,8 +563,8 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
             alignment: Alignment.centerLeft,
             child: Text(
               value,
-              style: const TextStyle(
-                color: Color(0xFF111827),
+              style: TextStyle(
+                color: context.textPrimary,
                 fontSize: 21,
                 fontWeight: FontWeight.w800,
               ),
@@ -572,7 +573,7 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 11),
+            style: TextStyle(color: context.textMuted, fontSize: 11),
           ),
         ],
       ),
@@ -641,7 +642,7 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
                         width: 1,
                         height: 55,
                         margin: const EdgeInsets.symmetric(horizontal: 12),
-                        color: const Color(0xFFE5E7EB),
+                        color: context.borderColor,
                       ),
                   ],
                 ],
@@ -671,13 +672,13 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
             children: [
               Text(
                 title,
-                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                style: TextStyle(color: context.textMuted, fontSize: 12),
               ),
               const SizedBox(height: 3),
               Text(
                 value,
-                style: const TextStyle(
-                  color: Color(0xFF111827),
+                style: TextStyle(
+                  color: context.textPrimary,
                   fontWeight: FontWeight.w700,
                   fontSize: 15,
                 ),
@@ -764,10 +765,10 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
           SizedBox(
             height: 210,
             child: data.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'Aucune donnée disponible',
-                      style: TextStyle(color: Color(0xFF9CA3AF)),
+                      style: TextStyle(color: context.textMuted),
                     ),
                   )
                 : Row(
@@ -791,9 +792,9 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
                                 FittedBox(
                                   child: Text(
                                     _compactMoney(value),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 9,
-                                      color: Color(0xFF6B7280),
+                                      color: context.textMuted,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -811,9 +812,9 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
                               const SizedBox(height: 7),
                               Text(
                                 _monthName(_number(item['mois']).toInt()),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 9,
-                                  color: Color(0xFF9CA3AF),
+                                  color: context.textMuted,
                                 ),
                               ),
                             ],
@@ -884,12 +885,12 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
           ),
           const SizedBox(height: 20),
           if (_categories.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(20),
               child: Center(
                 child: Text(
                   'Aucune dépense enregistrée.',
-                  style: TextStyle(color: Color(0xFF9CA3AF)),
+                  style: TextStyle(color: context.textMuted),
                 ),
               ),
             )
@@ -919,8 +920,8 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
                         ),
                         Text(
                           _money(amount),
-                          style: const TextStyle(
-                            color: Color(0xFF111827),
+                          style: TextStyle(
+                            color: context.textPrimary,
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                           ),
@@ -933,7 +934,7 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
                       child: LinearProgressIndicator(
                         value: percentage.toDouble(),
                         minHeight: 7,
-                        backgroundColor: const Color(0xFFF1F3F7),
+                        backgroundColor: context.pageBackground,
                         valueColor: const AlwaysStoppedAnimation(
                           Color(0xFF6C42D9),
                         ),
@@ -990,7 +991,7 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F7FB),
+              color: context.pageBackground,
               borderRadius: BorderRadius.circular(9),
             ),
             child: Icon(icon, size: 18, color: const Color(0xFF3155D9)),
@@ -999,13 +1000,13 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 13),
+              style: TextStyle(color: context.textMuted, fontSize: 13),
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
-              color: Color(0xFF111827),
+            style: TextStyle(
+              color: context.textPrimary,
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
@@ -1029,8 +1030,8 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
         const SizedBox(width: 10),
         Text(
           title,
-          style: const TextStyle(
-            color: Color(0xFF111827),
+          style: TextStyle(
+            color: context.textPrimary,
             fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
@@ -1041,9 +1042,9 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
 
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
-      color: Colors.white,
+      color: context.surfaceColor,
       borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: const Color(0xFFE5E7EB)),
+      border: Border.all(color: context.borderColor),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withValues(alpha: 0.025),
@@ -1067,11 +1068,11 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
             color: Color(0xFFEF4444),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Impossible de charger la comptabilité',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Color(0xFF111827),
+              color: context.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
@@ -1080,7 +1081,7 @@ class _ComptabilitePageState extends State<ComptabilitePage> {
           Text(
             _error!,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFF6B7280)),
+            style: TextStyle(color: context.textMuted),
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
@@ -1120,7 +1121,7 @@ class _ModuleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: context.surfaceColor,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -1129,7 +1130,7 @@ class _ModuleCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
+            border: Border.all(color: context.borderColor),
           ),
           child: Row(
             children: [
@@ -1149,10 +1150,10 @@ class _ModuleCard extends StatelessWidget {
                   children: [
                     Text(
                       titre,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
+                        color: context.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),

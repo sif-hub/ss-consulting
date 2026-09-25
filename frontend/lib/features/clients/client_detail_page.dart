@@ -4,6 +4,7 @@ import 'client_form_page.dart';
 import 'client_service.dart';
 import '../../core/pdf/client_pdf_service.dart';
 import '../dossiers/dossiers_page.dart';
+import '../../core/theme/app_colors.dart';
 
 class ClientDetailPage extends StatefulWidget {
   final int clientId;
@@ -153,7 +154,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         backgroundColor: const Color(0xFF3155D9),
         foregroundColor: Colors.white,
@@ -513,7 +514,7 @@ class _Section extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -629,7 +630,7 @@ class _StatBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(

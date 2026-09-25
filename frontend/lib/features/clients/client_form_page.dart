@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/client.dart';
 import 'client_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class ClientFormPage extends StatefulWidget {
   final Client? client;
@@ -198,7 +199,7 @@ class _ClientFormPageState extends State<ClientFormPage> {
     final title = widget.isEditing ? 'Modifier le client' : 'Nouveau client';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         backgroundColor: const Color(0xFF3155D9),
         foregroundColor: Colors.white,
@@ -461,7 +462,7 @@ class _ClientFormPageState extends State<ClientFormPage> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -510,7 +511,7 @@ class _ClientFormPageState extends State<ClientFormPage> {
       labelText: label,
       prefixIcon: Icon(icon),
       filled: true,
-      fillColor: const Color(0xFFF8F9FC),
+      fillColor: context.pageBackground,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(13),
         borderSide: BorderSide.none,

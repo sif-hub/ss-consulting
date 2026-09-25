@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../models/utilisateur.dart';
 import '../../core/auth/token_storage.dart';
 import '../ia/assistant_chat_page.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/theme_mode_button.dart';
 
 class RoleDashboardPage extends StatelessWidget {
   final Utilisateur user;
@@ -278,7 +280,7 @@ class RoleDashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(0xFF3155D9),
@@ -287,10 +289,17 @@ class RoleDashboardPage extends StatelessWidget {
           children: [
             const Icon(Icons.business_center_rounded),
             const SizedBox(width: 10),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Flexible(
+              child: Text(
+                title,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
         actions: [
+          const ThemeModeButton(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Tooltip(

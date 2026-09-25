@@ -230,14 +230,14 @@ class _FacturesPageState extends State<FacturesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text(
           'Factures',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF111827),
+        backgroundColor: context.surfaceColor,
+        foregroundColor: context.textPrimary,
         elevation: 0,
       ),
       body: RefreshIndicator(
@@ -451,7 +451,7 @@ class _FacturesPageState extends State<FacturesPage> {
               )
             : null,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: context.surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -492,7 +492,7 @@ class _FacturesPageState extends State<FacturesPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
@@ -745,7 +745,7 @@ class _FacturesPageState extends State<FacturesPage> {
           Icon(
             Icons.receipt_long_outlined,
             size: 70,
-            color: Colors.grey.shade300,
+            color: context.borderColor,
           ),
           const SizedBox(height: 18),
           Text(

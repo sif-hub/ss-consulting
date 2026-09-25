@@ -4,6 +4,7 @@ import '../../models/client.dart';
 import '../../models/dossier.dart';
 import '../clients/client_service.dart';
 import 'dossier_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class DossierFormPage extends StatefulWidget {
   final Dossier? dossier;
@@ -202,7 +203,7 @@ class _DossierFormPageState extends State<DossierFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FC),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: Text(
           _isEditing ? 'Modifier le dossier' : 'Nouveau dossier',
@@ -210,7 +211,7 @@ class _DossierFormPageState extends State<DossierFormPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaceColor,
         surfaceTintColor: Colors.transparent,
       ),
       body: Form(
@@ -424,7 +425,7 @@ class _DossierFormPageState extends State<DossierFormPage> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
@@ -468,7 +469,7 @@ class _DossierFormPageState extends State<DossierFormPage> {
       labelText: label,
       prefixIcon: Icon(icon),
       filled: true,
-      fillColor: const Color(0xFFF8FAFC),
+      fillColor: context.pageBackground,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,

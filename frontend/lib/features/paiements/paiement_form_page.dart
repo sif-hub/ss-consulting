@@ -4,6 +4,7 @@ import '../../models/paiement.dart';
 import '../../models/facture.dart';
 import '../factures/facture_service.dart';
 import 'paiement_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class PaiementFormPage extends StatefulWidget {
   final int? factureId;
@@ -319,7 +320,7 @@ class _PaiementFormPageState extends State<PaiementFormPage> {
       hintText: hint,
       prefixIcon: Icon(icon),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: context.pageBackground,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
         borderSide: BorderSide.none,
@@ -327,7 +328,7 @@ class _PaiementFormPageState extends State<PaiementFormPage> {
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
         borderSide: BorderSide(
-          color: Colors.grey.shade200,
+          color: context.borderColor,
         ),
       ),
       focusedBorder: OutlineInputBorder(
@@ -366,10 +367,10 @@ class _PaiementFormPageState extends State<PaiementFormPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE5E7EB),
+          color: context.borderColor,
         ),
         boxShadow: [
           BoxShadow(
@@ -425,7 +426,7 @@ class _PaiementFormPageState extends State<PaiementFormPage> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: context.pageBackground,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -514,7 +515,7 @@ class _PaiementFormPageState extends State<PaiementFormPage> {
             child: LinearProgressIndicator(
               value: progression,
               minHeight: 8,
-              backgroundColor: Colors.grey.shade200,
+              backgroundColor: context.borderColor,
             ),
           ),
         ],
@@ -530,7 +531,7 @@ class _PaiementFormPageState extends State<PaiementFormPage> {
     return Container(
       padding: const EdgeInsets.all(11),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: context.pageBackground,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -572,7 +573,7 @@ class _PaiementFormPageState extends State<PaiementFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: Text(
           widget.isEditing
@@ -911,7 +912,7 @@ class _PaiementFormPageState extends State<PaiementFormPage> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -1035,7 +1036,7 @@ class _PaiementFormPageState extends State<PaiementFormPage> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.10),

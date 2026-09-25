@@ -372,7 +372,7 @@ class _PaiementsPageState extends State<PaiementsPage> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.surfaceColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -506,7 +506,7 @@ class _PaiementsPageState extends State<PaiementsPage> {
     final filtered = _filteredPaiements;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -663,7 +663,7 @@ class _PaiementsPageState extends State<PaiementsPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
@@ -725,7 +725,7 @@ class _PaiementsPageState extends State<PaiementsPage> {
               )
             : null,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: context.surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -797,7 +797,7 @@ class _PaiementsPageState extends State<PaiementsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -981,12 +981,12 @@ class _PaiementsPageState extends State<PaiementsPage> {
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
-          Icon(Icons.payments_outlined, size: 70, color: Colors.grey.shade300),
+          Icon(Icons.payments_outlined, size: 70, color: context.borderColor),
           const SizedBox(height: 16),
           const Text(
             'Aucun paiement trouvé',

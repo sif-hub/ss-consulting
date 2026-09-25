@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/api/api_endpoints.dart';
+import '../../core/theme/app_colors.dart';
 
 class ComptesPage extends StatefulWidget {
   final int? clientId;
@@ -192,7 +193,7 @@ class _ComptesPageState extends State<ComptesPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: Text(
           widget.clientLabel != null
@@ -200,8 +201,8 @@ class _ComptesPageState extends State<ComptesPage>
               : 'Comptes (cabinet)',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         actions: [_buildYearSelector(), const SizedBox(width: 12)],
         bottom: TabBar(
@@ -231,7 +232,7 @@ class _ComptesPageState extends State<ComptesPage>
       height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F3F9),
+        color: context.pageBackground,
         borderRadius: BorderRadius.circular(10),
       ),
       child: DropdownButtonHideUnderline(
@@ -271,16 +272,16 @@ class _ComptesPageState extends State<ComptesPage>
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.surfaceColor,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+              border: Border.all(color: context.borderColor),
             ),
             clipBehavior: Clip.antiAlias,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
                 headingRowColor: WidgetStateProperty.all(
-                  const Color(0xFFF5F7FB),
+                  context.pageBackground,
                 ),
                 columns: const [
                   DataColumn(label: Text('Date')),
@@ -366,7 +367,7 @@ class _ComptesPageState extends State<ComptesPage>
                           )
                         : null,
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: context.surfaceColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -401,9 +402,9 @@ class _ComptesPageState extends State<ComptesPage>
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: context.borderColor),
       ),
       child: ExpansionTile(
         shape: const RoundedRectangleBorder(side: BorderSide.none),
@@ -420,7 +421,7 @@ class _ComptesPageState extends State<ComptesPage>
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              headingRowColor: WidgetStateProperty.all(const Color(0xFFF5F7FB)),
+              headingRowColor: WidgetStateProperty.all(context.pageBackground),
               columns: const [
                 DataColumn(label: Text('Date')),
                 DataColumn(label: Text('Journal')),
@@ -738,14 +739,14 @@ class _EcritureFormPageState extends State<EcritureFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text(
           'Nouvelle écriture',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       body: Form(
@@ -855,9 +856,9 @@ class _EcritureFormPageState extends State<EcritureFormPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: context.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

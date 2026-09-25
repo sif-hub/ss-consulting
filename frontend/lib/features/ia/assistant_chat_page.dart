@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'ai_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class AssistantChatPage extends StatefulWidget {
   const AssistantChatPage({super.key});
@@ -95,7 +96,7 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Row(
           children: [
@@ -104,8 +105,8 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
             Text('Assistant IA', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       body: Column(
@@ -183,12 +184,12 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
         decoration: BoxDecoration(
           color: isUser ? const Color(0xFF3155D9) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: isUser ? null : Border.all(color: const Color(0xFFE5E7EB)),
+          border: isUser ? null : Border.all(color: context.borderColor),
         ),
         child: Text(
           message.content,
           style: TextStyle(
-            color: isUser ? Colors.white : const Color(0xFF111827),
+            color: isUser ? Colors.white : context.textPrimary,
           ),
         ),
       ),
@@ -202,9 +203,9 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.surfaceColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
+          border: Border.all(color: context.borderColor),
         ),
         child: const SizedBox(
           width: 20,
@@ -219,7 +220,7 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -242,7 +243,7 @@ class _AssistantChatPageState extends State<AssistantChatPage> {
                 decoration: InputDecoration(
                   hintText: 'Écrivez votre question...',
                   filled: true,
-                  fillColor: const Color(0xFFF5F7FB),
+                  fillColor: context.pageBackground,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,

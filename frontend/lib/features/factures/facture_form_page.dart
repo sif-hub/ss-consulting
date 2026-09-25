@@ -4,6 +4,7 @@ import '../../models/client.dart';
 import '../../models/facture.dart';
 import '../clients/client_service.dart';
 import 'facture_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class FactureFormPage extends StatefulWidget {
   final int? clientId;
@@ -252,7 +253,7 @@ class _FactureFormPageState extends State<FactureFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FC),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: Text(
           widget.isEditing
@@ -262,8 +263,8 @@ class _FactureFormPageState extends State<FactureFormPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
       ),
       body: Form(
         key: _formKey,
@@ -395,7 +396,7 @@ class _FactureFormPageState extends State<FactureFormPage> {
                   child: Icon(Icons.notes_rounded),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: context.surfaceColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -450,7 +451,7 @@ class _FactureFormPageState extends State<FactureFormPage> {
         hintText: hint,
         prefixIcon: Icon(icon),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: context.surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -492,7 +493,7 @@ class _FactureFormPageState extends State<FactureFormPage> {
         labelText: label,
         prefixIcon: Icon(icon),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: context.surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -527,7 +528,7 @@ class _FactureFormPageState extends State<FactureFormPage> {
                 )
               : null,
           filled: true,
-          fillColor: Colors.white,
+          fillColor: context.surfaceColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,

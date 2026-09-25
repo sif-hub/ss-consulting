@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/document.dart';
 import '../ia/ai_service.dart';
 import 'document_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class DocumentsAdminPage extends StatefulWidget {
   const DocumentsAdminPage({super.key});
@@ -268,14 +269,14 @@ class _DocumentsAdminPageState extends State<DocumentsAdminPage> {
     final documents = _filtered;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text(
           'Documents',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       body: RefreshIndicator(
@@ -291,7 +292,7 @@ class _DocumentsAdminPageState extends State<DocumentsAdminPage> {
                 hintText: 'Rechercher un document...',
                 prefixIcon: const Icon(Icons.search_rounded),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: context.surfaceColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none,
@@ -373,7 +374,7 @@ class _DocumentsAdminPageState extends State<DocumentsAdminPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),

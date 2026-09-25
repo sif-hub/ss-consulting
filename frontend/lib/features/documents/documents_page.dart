@@ -5,6 +5,7 @@ import '../../models/document.dart';
 import '../ia/ai_service.dart';
 import 'document_form_page.dart';
 import 'document_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class DocumentsPage extends StatefulWidget {
   final int dossierId;
@@ -269,14 +270,14 @@ class _DocumentsPageState extends State<DocumentsPage> {
     final documents = _filteredDocuments;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: const Text(
           'Documents',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -376,7 +377,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
               )
             : null,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: context.surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide.none,
@@ -415,7 +416,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),

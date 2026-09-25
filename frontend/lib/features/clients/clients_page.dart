@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/client.dart';
 import 'client_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class ClientsPage extends StatefulWidget {
   const ClientsPage({super.key});
@@ -170,7 +171,7 @@ class _ClientsPageState extends State<ClientsPage> {
     final clients = _filteredClients;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         backgroundColor: const Color(0xFF3155D9),
         foregroundColor: Colors.white,
@@ -289,7 +290,7 @@ class _ClientsPageState extends State<ClientsPage> {
                 icon: const Icon(Icons.clear_rounded),
               ),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: context.surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -335,7 +336,7 @@ class _ClientsPageState extends State<ClientsPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
-      color: Colors.white,
+      color: context.surfaceColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
@@ -423,7 +424,7 @@ class _ClientsPageState extends State<ClientsPage> {
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
       ),
       child: const Column(
@@ -458,7 +459,7 @@ class _ClientsPageState extends State<ClientsPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(

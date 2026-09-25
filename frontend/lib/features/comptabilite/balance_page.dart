@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/api/api_endpoints.dart';
+import '../../core/theme/app_colors.dart';
 
 class BalancePage extends StatefulWidget {
   final int? clientId;
@@ -89,7 +90,7 @@ class _BalancePageState extends State<BalancePage> {
     final comptes = List<dynamic>.from(_balance?['comptes'] ?? []);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FB),
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: Text(
           widget.clientLabel != null
@@ -97,8 +98,8 @@ class _BalancePageState extends State<BalancePage> {
               : 'Balance comptable (cabinet)',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         actions: [_buildYearSelector(), const SizedBox(width: 12)],
       ),
@@ -128,7 +129,7 @@ class _BalancePageState extends State<BalancePage> {
       height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F3F9),
+        color: context.pageBackground,
         borderRadius: BorderRadius.circular(10),
       ),
       child: DropdownButtonHideUnderline(
@@ -247,15 +248,15 @@ class _BalancePageState extends State<BalancePage> {
   Widget _buildTable(List<dynamic> comptes) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: context.borderColor),
       ),
       clipBehavior: Clip.antiAlias,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
-          headingRowColor: WidgetStateProperty.all(const Color(0xFFF5F7FB)),
+          headingRowColor: WidgetStateProperty.all(context.pageBackground),
           columns: const [
             DataColumn(label: Text('N°')),
             DataColumn(label: Text('Compte')),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/notification.dart';
 import 'notification_service.dart';
+import '../../core/theme/app_colors.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -291,7 +292,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: context.pageBackground,
       appBar: AppBar(
         title: Row(
           children: [
@@ -489,7 +490,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: notification.lu
-                    ? Colors.grey.shade200
+                    ? context.borderColor
                     : color.withValues(alpha: 0.25),
               ),
             ),
