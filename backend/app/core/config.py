@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,16 @@ class Settings(BaseSettings):
         "postgresql+psycopg2://ss_consulting:ss_consulting_pass"
         "@localhost:5432/ss_consulting_db"
     )
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def utiliser_psycopg2(cls, url: str) -> str:
+        """Neon/Vercel fournissent `postgresql://...`. SQLAlchemy 2.1 prend
+        alors psycopg (v3) par défaut, absent ici : on force psycopg2."""
+        for prefix in ("postgres://", "postgresql://"):
+            if url.startswith(prefix):
+                return "postgresql+psycopg2://" + url[len(prefix):]
+        return url
 
     # JWT
     SECRET_KEY: str = "change-this-secret-key"
