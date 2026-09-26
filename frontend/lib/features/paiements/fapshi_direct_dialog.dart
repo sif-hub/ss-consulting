@@ -19,10 +19,8 @@ Future<bool?> showFapshiDirectDialog(
   return showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => _FapshiDirectDialog(
-      factureId: factureId,
-      resteAPayer: resteAPayer,
-    ),
+    builder: (_) =>
+        _FapshiDirectDialog(factureId: factureId, resteAPayer: resteAPayer),
   );
 }
 
@@ -56,12 +54,32 @@ class _FapshiDirectDialogState extends State<_FapshiDirectDialog> {
   Timer? _suivi;
   DateTime? _debutAttente;
   int? _paiementId;
+  double _taux = 0;
 
   @override
   void initState() {
     super.initState();
     _montantController.text = widget.resteAPayer.toStringAsFixed(0);
+    _chargerTaux();
   }
+
+  Future<void> _chargerTaux() async {
+    try {
+      final taux = await _service.getTauxCommission();
+
+      if (!mounted) return;
+
+      setState(() => _taux = taux);
+    } catch (_) {
+      // Sans le taux, le détail des frais n'est simplement pas affiché.
+    }
+  }
+
+  double? get _montantSaisi =>
+      double.tryParse(_montantController.text.trim().replaceAll(',', '.'));
+
+  double _commissionSur(double montant) =>
+      (montant * _taux / 100).ceilToDouble();
 
   @override
   void dispose() {
@@ -71,8 +89,7 @@ class _FapshiDirectDialogState extends State<_FapshiDirectDialog> {
     super.dispose();
   }
 
-  String _formatMontant(double montant) =>
-      '${montant.toStringAsFixed(0)} FCFA';
+  String _formatMontant(double montant) => '${montant.toStringAsFixed(0)} FCFA';
 
   Future<void> _payer() async {
     final montant = double.tryParse(
@@ -218,6 +235,7 @@ class _FapshiDirectDialogState extends State<_FapshiDirectDialog> {
             const SizedBox(height: 16),
             TextField(
               controller: _montantController,
+              onChanged: (_) => setState(() {}),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
@@ -244,6 +262,10 @@ class _FapshiDirectDialogState extends State<_FapshiDirectDialog> {
                 ),
               ),
             ),
+            if (_taux > 0 && (_montantSaisi ?? 0) > 0) ...[
+              const SizedBox(height: 12),
+              _buildDetailFrais(_montantSaisi!),
+            ],
             const SizedBox(height: 8),
             Text(
               'Vous recevrez une demande de confirmation sur ce numéro. '
@@ -254,10 +276,7 @@ class _FapshiDirectDialogState extends State<_FapshiDirectDialog> {
               const SizedBox(height: 10),
               Text(
                 _erreurSaisie!,
-                style: const TextStyle(
-                  color: AppColors.danger,
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: AppColors.danger, fontSize: 13),
               ),
             ],
           ],
@@ -279,6 +298,52 @@ class _FapshiDirectDialogState extends State<_FapshiDirectDialog> {
               : const Text('Payer'),
         ),
       ],
+    );
+  }
+
+  Widget _buildDetailFrais(double montant) {
+    final commission = _commissionSur(montant);
+    final tauxAffiche = _taux == _taux.roundToDouble()
+        ? _taux.toStringAsFixed(0)
+        : _taux.toString();
+
+    Widget ligne(String label, String valeur, {bool fort = false}) {
+      final style = TextStyle(
+        fontWeight: fort ? FontWeight.w700 : FontWeight.w400,
+        fontSize: fort ? 15 : 13,
+      );
+
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: style),
+          Text(valeur, style: style),
+        ],
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: context.pageBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          ligne('Montant de la facture', _formatMontant(montant)),
+          const SizedBox(height: 4),
+          ligne(
+            'Frais de service ($tauxAffiche %)',
+            _formatMontant(commission),
+          ),
+          const Divider(height: 16),
+          ligne(
+            'Total débité',
+            _formatMontant(montant + commission),
+            fort: true,
+          ),
+        ],
+      ),
     );
   }
 
@@ -341,10 +406,7 @@ class _FapshiDirectDialogState extends State<_FapshiDirectDialog> {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(

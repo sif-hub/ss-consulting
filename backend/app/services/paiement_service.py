@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 
 from fastapi import HTTPException, status
@@ -17,6 +18,14 @@ def calculate_commission(montant: float, taux: float = 2.0):
     commission = round(montant * taux / 100, 2)
     total = round(montant + commission, 2)
     return commission, total
+
+
+def commission_fapshi(montant: float, taux: float):
+    """Commission payée par le client en plus de la facture, en FCFA entiers
+    (Fapshi n'accepte pas de décimales) et arrondie au-dessus pour ne jamais
+    percevoir moins que le taux prévu."""
+    commission = math.ceil(montant * taux / 100)
+    return float(commission), float(montant + commission)
 
 
 

@@ -34,6 +34,7 @@ from app.services.paiement_service import (
     get_total_paye,
     get_reste_a_payer,
     calculate_commission,
+    commission_fapshi,
     update_facture_statut,
 )
 
@@ -101,6 +102,14 @@ def list_paiements(
         )
 
     return get_paiements(db, facture_id)
+
+
+@router.get("/commission")
+def taux_commission_fapshi(
+    current_user: User = Depends(get_current_user),
+):
+    """Taux de commission ajouté au montant payé par Mobile Money."""
+    return {"taux": settings.PAYMENT_COMMISSION_RATE}
 
 
 @router.get(
@@ -441,8 +450,14 @@ async def initier_paiement_fapshi(
     # INITIALISATION FAPSHI
     # --------------------------------------------------------
 
+    taux_commission = settings.PAYMENT_COMMISSION_RATE
+    montant_commission, montant_total = commission_fapshi(
+        data.montant,
+        taux_commission,
+    )
+
     fapshi_response = await fapshi_service.initiate_payment(
-        amount=data.montant,
+        amount=montant_total,
         external_id=reference,
         email=client.email,
         redirect_url=settings.FAPSHI_REDIRECT_URL or None,
@@ -467,14 +482,6 @@ async def initier_paiement_fapshi(
     # CREATION PAIEMENT LOCAL
     # --------------------------------------------------------
 
-    taux_commission = 2.0
-
-    montant_commission, montant_total = (
-        calculate_commission(
-            data.montant,
-            taux_commission,
-        )
-    )
 
     paiement = Paiement(
         facture_id=facture.id,
@@ -544,8 +551,14 @@ async def payer_direct_fapshi(
         data.montant,
     )
 
+    taux_commission = settings.PAYMENT_COMMISSION_RATE
+    montant_commission, montant_total = commission_fapshi(
+        data.montant,
+        taux_commission,
+    )
+
     fapshi_response = await fapshi_service.direct_pay(
-        amount=data.montant,
+        amount=montant_total,
         phone=telephone,
         external_id=reference,
         name=client.nom,
@@ -561,12 +574,6 @@ async def payer_direct_fapshi(
             detail="Fapshi n'a pas renvoyé d'identifiant de transaction.",
         )
 
-    taux_commission = 2.0
-
-    montant_commission, montant_total = calculate_commission(
-        data.montant,
-        taux_commission,
-    )
 
     paiement = Paiement(
         facture_id=facture.id,
