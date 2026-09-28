@@ -55,12 +55,66 @@ def client(db_session):
 
 
 @pytest.fixture()
-def role_client(db_session):
-    role = Role(nom="Client", description="Accès client")
-    db_session.add(role)
-    db_session.commit()
-    db_session.refresh(role)
-    return role
+def roles(db_session):
+    """Les 6 rôles réels de l'application, insérés une seule fois par test."""
+    from app.seeds.seed_roles import seed_roles
+
+    seed_roles(db_session)
+    return {role.nom: role for role in db_session.query(Role).all()}
+
+
+@pytest.fixture()
+def role_client(roles):
+    return roles["Client"]
+
+
+@pytest.fixture()
+def make_user(db_session, roles):
+    """Fabrique un utilisateur actif avec le rôle demandé (par son nom exact,
+    voir app/seeds/seed_roles.py), avec un email unique par défaut."""
+
+    compteur = {"n": 0}
+
+    def _make(role_nom: str, **overrides):
+        compteur["n"] += 1
+
+        defaults = {
+            "nom": role_nom,
+            "prenom": "Test",
+            "email": f"{role_nom.lower().replace(' ', '-')}-{compteur['n']}@example.com",
+            "telephone": None,
+            "mot_de_passe": hash_password("motdepasse123"),
+            "role_id": roles[role_nom].id,
+            "actif": True,
+        }
+        defaults.update(overrides)
+
+        user = User(**defaults)
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+        return user
+
+    return _make
+
+
+@pytest.fixture()
+def auth_headers():
+    """En-tête Authorization Bearer valide pour l'utilisateur donné, sans
+    passer par /auth/login (plus rapide, et teste un autre chemin)."""
+    from app.core.security import create_access_token
+
+    def _headers(user):
+        token = create_access_token(
+            {
+                "sub": str(user.id),
+                "email": user.email,
+                "role_id": user.role_id,
+            }
+        )
+        return {"Authorization": f"Bearer {token}"}
+
+    return _headers
 
 
 @pytest.fixture()
